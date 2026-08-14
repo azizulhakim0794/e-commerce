@@ -1,6 +1,35 @@
 import { Link } from "react-router-dom";
+import { registerApi } from "../../helper/service/auth.service";
 
 const Register = () => {
+    const onSubmit = async (event: any) => {
+        event.preventDefault();
+
+        const formData = new FormData(event.currentTarget);
+
+        const username = formData.get("name") as string;
+        const email = formData.get("email") as string;
+        const password = formData.get("password") as string;
+        const confarmation = formData.get("confarmation") as string;
+
+        if (password !== confarmation) {
+            console.error("Passwords do not match");
+            return;
+        }
+
+        try {
+            const response = await registerApi({
+                username,
+                email,
+                password,
+                confarmation
+            });
+
+            console.log("Registration successful:", response);
+        } catch (error) {
+            console.error("Registration failed:", error);
+        }
+    };
     return (
         <div className="row justify-content-center py-5">
             <div className="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
@@ -21,7 +50,7 @@ const Register = () => {
                         </div>
 
                         {/* Registration Form */}
-                        <form>
+                        <form onSubmit={onSubmit}>
 
                             {/* Name */}
                             <div className="mb-3">
@@ -87,7 +116,7 @@ const Register = () => {
                             {/* Confirm Password */}
                             <div className="mb-3">
                                 <label
-                                    htmlFor="confirmPassword"
+                                    htmlFor="confarmation"
                                     className="form-label fw-semibold"
                                 >
                                     Confirm Password
@@ -95,8 +124,8 @@ const Register = () => {
 
                                 <input
                                     type="password"
-                                    id="confirmPassword"
-                                    name="confirmPassword"
+                                    id="confarmation"
+                                    name="confarmation"
                                     className="form-control"
                                     placeholder="Confirm your password"
                                     required

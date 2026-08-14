@@ -13,7 +13,7 @@ export const registerApi = (data: {
     username: string;
     email: string;
     password: string;
-    confarmation: string;
+    confirmation: string;
 }) => {
     return api.post("/auth/register/", data);
 };

@@ -11,15 +11,6 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-    const csrfToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("csrftoken="))
-        ?.split("=")[1];
-
-    if (csrfToken) {
-        config.headers["X-CSRFToken"] = decodeURIComponent(csrfToken);
-    }
-
     const accessToken = localStorage.getItem("access_token");
 
     if (accessToken) {
@@ -28,6 +19,7 @@ api.interceptors.request.use((config) => {
 
     return config;
 });
+
 export const GET = async <T>(
     url: string,
     config?: AxiosRequestConfig

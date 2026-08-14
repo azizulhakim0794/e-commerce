@@ -3,25 +3,27 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_exempt
 from .models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
 # Create your views here.
 @require_POST
-@csrf_protect
+@csrf_exempt
 def register(request):
     try:
-        data = json.load(request.body)
+        data = json.loads(request.body)
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid Json"}, status=400)
 
     username = data.get("username")
+    email = data.get("email")
     password = data.get("password")
     confirmation = data.get("confirmation")
 
-    if not username or not password or not confirmation:
+    if not username or not password or not confirmation or not email:
+        print(username, password, confirmation)
         return JsonResponse(
             {"error": "Username and passworrd and confirmation password is required"},
             status=400,
@@ -30,10 +32,13 @@ def register(request):
     if password != confirmation:
         return JsonResponse({"error": "Passwords do not match"})
 
-    if User.objects.filter(username=username).exists():
+    if (
+        User.objects.filter(username=username).exists()
+        or User.objects.filter(email=email).exists()
+    ):
         return JsonResponse({"error": "User already exist"}, status=400)
 
-    user = User.objects.create_user(username=username, password=password)
+    user = User.objects.create_user(username=username, password=password, email=email)
 
     login(request, user)
 
@@ -43,7 +48,11 @@ def register(request):
     return JsonResponse(
         {
             "message": "Registrations successfully done ",
-            "user": user,
+            "user": {
+                "id": str(user.id),
+                "username": user.username,
+                "email": user.email,
+            },
             "access": str(refresh.access_token),
             "refresh": str(refresh),
         },
@@ -52,7 +61,7 @@ def register(request):
 
 
 @require_POST
-@csrf_protect
+@csrf_exempt
 def login_view(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST request required"}, status=405)
@@ -86,7 +95,7 @@ def login_view(request):
     )
 
 
+@csrf_exempt
 def logout_view(request):
     logout(request)
-
     return JsonResponse({"message": "Logout successful"})

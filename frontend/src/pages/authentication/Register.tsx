@@ -10,9 +10,9 @@ const Register = () => {
         const username = formData.get("name") as string;
         const email = formData.get("email") as string;
         const password = formData.get("password") as string;
-        const confarmation = formData.get("confarmation") as string;
+        const confirmation = formData.get("confirmation") as string;
 
-        if (password !== confarmation) {
+        if (password !== confirmation) {
             console.error("Passwords do not match");
             return;
         }
@@ -22,7 +22,7 @@ const Register = () => {
                 username,
                 email,
                 password,
-                confarmation
+                confirmation
             });
 
             console.log("Registration successful:", response);
@@ -116,7 +116,7 @@ const Register = () => {
                             {/* Confirm Password */}
                             <div className="mb-3">
                                 <label
-                                    htmlFor="confarmation"
+                                    htmlFor="confirmation"
                                     className="form-label fw-semibold"
                                 >
                                     Confirm Password
@@ -124,8 +124,8 @@ const Register = () => {
 
                                 <input
                                     type="password"
-                                    id="confarmation"
-                                    name="confarmation"
+                                    id="confirmation"
+                                    name="confirmation"
                                     className="form-control"
                                     placeholder="Confirm your password"
                                     required

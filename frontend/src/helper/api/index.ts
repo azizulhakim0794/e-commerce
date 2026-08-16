@@ -1,6 +1,7 @@
 import axios from "axios";
-import type { AxiosRequestConfig } from "axios";
+import type { AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
 import { ENV } from "../../config/env";
+import { tokenStorage } from "../token.storage";
 
 const api = axios.create({
     baseURL: ENV.API_BASE_URL,
@@ -10,8 +11,69 @@ const api = axios.create({
     },
 });
 
-// Session-based authentication, no token needed
-// Credentials are automatically sent via cookies with withCredentials: true
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+    const accessToken = tokenStorage.getAccessToken();
+
+    if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    return config;
+});
+
+let refreshPromise: Promise<void> | null = null;
+
+const refreshAccessToken = async () => {
+    const refreshToken = tokenStorage.getRefreshToken();
+
+    if (!refreshToken) {
+        throw new Error("Missing refresh token");
+    }
+
+    if (!refreshPromise) {
+        refreshPromise = api
+            .post<{ access: string; refresh: string }>("/auth/refresh/", {
+                refresh: refreshToken,
+            })
+            .then((response) => {
+                tokenStorage.setTokens(response.data.access, response.data.refresh);
+            })
+            .finally(() => {
+                refreshPromise = null;
+            });
+    }
+
+    await refreshPromise;
+};
+
+api.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config as InternalAxiosRequestConfig & {
+            _retry?: boolean;
+        };
+
+        if (
+            error.response?.status !== 401 ||
+            originalRequest._retry ||
+            originalRequest.url?.includes("/auth/login/") ||
+            originalRequest.url?.includes("/auth/register/") ||
+            originalRequest.url?.includes("/auth/refresh/")
+        ) {
+            return Promise.reject(error);
+        }
+
+        originalRequest._retry = true;
+
+        try {
+            await refreshAccessToken();
+            return api(originalRequest);
+        } catch (refreshError) {
+            tokenStorage.clear();
+            return Promise.reject(refreshError);
+        }
+    }
+);
 
 export const GET = async <T>(
     url: string,

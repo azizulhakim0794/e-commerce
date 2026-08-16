@@ -1,19 +1,19 @@
 import { create } from "zustand";
-import { getMe } from "../helper/service/auth.service";
-
-interface User {
-    id: string;
-    username: string;
-    email: string;
-}
+import {
+    getMe,
+    logoutApi,
+    refreshApi,
+    type AuthUser,
+} from "../helper/service/auth.service";
+import { tokenStorage } from "../helper/token.storage";
 
 interface AuthState {
-    user: User | null;
+    user: AuthUser | null;
     loading: boolean;
 
     initialize: () => Promise<void>;
-    setUser: (user: User | null) => void;
-    logout: () => void;
+    setUser: (user: AuthUser | null) => void;
+    logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -21,29 +21,29 @@ export const useAuthStore = create<AuthState>((set) => ({
     loading: true,
 
     initialize: async () => {
-        console.log("Auth initialization started");
-
         try {
-            console.log("Calling /auth/me/");
-
-            const response = await getMe();
-
-            console.log("ME response:", response.data);
-
-            if (response.data.authenticated) {
-                set({
-                    user: response.data.user,
-                    loading: false,
-                });
-            } else {
-                set({
-                    user: null,
-                    loading: false,
-                });
+            if (!tokenStorage.getAccessToken() && !tokenStorage.getRefreshToken()) {
+                set({ user: null, loading: false });
+                return;
             }
-        } catch (error) {
-            console.error("ME request failed:", error);
 
+            let response = await getMe();
+
+            if (!response.data.authenticated && tokenStorage.getRefreshToken()) {
+                await refreshApi();
+                response = await getMe();
+            }
+
+            set({
+                user: response.data.authenticated ? response.data.user : null,
+                loading: false,
+            });
+
+            if (!response.data.authenticated) {
+                tokenStorage.clear();
+            }
+        } catch {
+            tokenStorage.clear();
             set({
                 user: null,
                 loading: false,
@@ -55,10 +55,14 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({ user });
     },
 
-    logout: () => {
-        set({
-            user: null,
-            loading: false,
-        });
+    logout: async () => {
+        try {
+            await logoutApi();
+        } finally {
+            set({
+                user: null,
+                loading: false,
+            });
+        }
     },
 }));

@@ -1,6 +1,15 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../stores/auth.store";
 
 const Navbar = () => {
+    const navigate = useNavigate();
+    const { user, logout } = useAuthStore();
+
+    const handleLogout = async () => {
+        await logout();
+        navigate("/login");
+    };
+
     return (
         <nav className="navbar navbar-expand-lg bg-body-tertiary">
             <div className="container-fluid">
@@ -41,14 +50,30 @@ const Navbar = () => {
                         </li>
                     </ul>
 
-                    <div className="d-flex gap-2">
-                        <Link className="btn btn-outline-primary" to="/login">
-                            Login
-                        </Link>
-
-                        <Link className="btn btn-primary" to="/register">
-                            Register
-                        </Link>
+                    <div className="d-flex align-items-center gap-2">
+                        {user ? (
+                            <>
+                                <span className="text-muted small">
+                                    Hi, {user.username}
+                                </span>
+                                <button
+                                    type="button"
+                                    className="btn btn-outline-secondary"
+                                    onClick={handleLogout}
+                                >
+                                    Logout
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link className="btn btn-outline-primary" to="/login">
+                                    Login
+                                </Link>
+                                <Link className="btn btn-primary" to="/register">
+                                    Register
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

@@ -1,11 +1,5 @@
 import { create } from "zustand";
-import {
-    getMe,
-    logoutApi,
-    refreshApi,
-    type AuthUser,
-} from "../helper/service/auth.service";
-import { tokenStorage } from "../helper/token.storage";
+import { getMe, logoutApi, type AuthUser } from "../helper/service/auth.service";
 
 interface AuthState {
     user: AuthUser | null;
@@ -22,28 +16,13 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     initialize: async () => {
         try {
-            if (!tokenStorage.getAccessToken() && !tokenStorage.getRefreshToken()) {
-                set({ user: null, loading: false });
-                return;
-            }
-
-            let response = await getMe();
-
-            if (!response.data.authenticated && tokenStorage.getRefreshToken()) {
-                await refreshApi();
-                response = await getMe();
-            }
+            const response = await getMe();
 
             set({
                 user: response.data.authenticated ? response.data.user : null,
                 loading: false,
             });
-
-            if (!response.data.authenticated) {
-                tokenStorage.clear();
-            }
         } catch {
-            tokenStorage.clear();
             set({
                 user: null,
                 loading: false,

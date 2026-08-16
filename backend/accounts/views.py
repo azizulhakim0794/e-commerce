@@ -1,22 +1,20 @@
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login, logout
+from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import status
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-from rest_framework_simplejwt.settings import api_settings
-from rest_framework_simplejwt.tokens import RefreshToken
 
-from .authentication import CookieJWTAuthentication
 from .models import User
-from .tokens import (
-    REFRESH_COOKIE,
-    build_auth_payload,
-    clear_auth_cookies,
-    issue_tokens_for_user,
-    serialize_user,
-    set_auth_cookies,
-)
+
+
+def serialize_user(user) -> dict:
+    return {
+        "id": str(user.id),
+        "username": user.username,
+        "email": user.email,
+    }
 
 
 def authenticate_user(identifier: str, password: str):
@@ -29,6 +27,7 @@ def authenticate_user(identifier: str, password: str):
 
 
 @api_view(["POST"])
+@authentication_classes([SessionAuthentication])
 @permission_classes([AllowAny])
 def register(request):
     username = request.data.get("username", "").strip()
@@ -61,17 +60,19 @@ def register(request):
         )
 
     user = User.objects.create_user(username=username, email=email, password=password)
-    access_token, refresh_token = issue_tokens_for_user(user)
+    login(request, user)
 
-    response = Response(
-        build_auth_payload(user, access_token, refresh_token, "Registration successful."),
+    return Response(
+        {
+            "message": "Registration successful.",
+            "user": serialize_user(user),
+        },
         status=status.HTTP_201_CREATED,
     )
 
-    return set_auth_cookies(response, access_token, refresh_token)
-
 
 @api_view(["POST"])
+@authentication_classes([SessionAuthentication])
 @permission_classes([AllowAny])
 def login_view(request):
     identifier = request.data.get("username", "").strip()
@@ -91,73 +92,29 @@ def login_view(request):
             status=status.HTTP_401_UNAUTHORIZED,
         )
 
-    access_token, refresh_token = issue_tokens_for_user(user)
+    login(request, user)
 
-    response = Response(
-        build_auth_payload(user, access_token, refresh_token, "Login successful."),
-        status=status.HTTP_200_OK,
-    )
-
-    return set_auth_cookies(response, access_token, refresh_token)
-
-
-@api_view(["POST"])
-@permission_classes([AllowAny])
-def refresh_view(request):
-    refresh_token = request.COOKIES.get(REFRESH_COOKIE) or request.data.get("refresh")
-
-    if not refresh_token:
-        return Response(
-            {"error": "Refresh token is required."},
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
-
-    try:
-        refresh = RefreshToken(refresh_token)
-        access_token = str(refresh.access_token)
-        next_refresh_token = refresh_token
-
-        if api_settings.ROTATE_REFRESH_TOKENS:
-            if api_settings.BLACKLIST_AFTER_ROTATION:
-                refresh.blacklist()
-            refresh.set_jti()
-            refresh.set_exp()
-            next_refresh_token = str(refresh)
-    except TokenError:
-        response = Response(
-            {"error": "Invalid or expired refresh token."},
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
-        return clear_auth_cookies(response)
-
-    response = Response(
+    return Response(
         {
-            "message": "Token refreshed.",
-            "access": access_token,
-            "refresh": next_refresh_token,
+            "message": "Login successful.",
+            "user": serialize_user(user),
         },
         status=status.HTTP_200_OK,
     )
-    return set_auth_cookies(response, access_token, next_refresh_token)
 
 
 @api_view(["POST"])
+@authentication_classes([SessionAuthentication])
 @permission_classes([AllowAny])
 def logout_view(request):
-    refresh_token = request.COOKIES.get(REFRESH_COOKIE) or request.data.get("refresh")
+    logout(request)
 
-    if refresh_token:
-        try:
-            RefreshToken(refresh_token).blacklist()
-        except (TokenError, InvalidToken, AttributeError):
-            pass
-
-    response = Response({"message": "Logout successful."}, status=status.HTTP_200_OK)
-    return clear_auth_cookies(response)
+    return Response({"message": "Logout successful."}, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
-@authentication_classes([CookieJWTAuthentication])
+@ensure_csrf_cookie
+@authentication_classes([SessionAuthentication])
 @permission_classes([AllowAny])
 def me(request):
     user = request.user

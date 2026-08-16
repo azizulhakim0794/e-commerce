@@ -1,6 +1,32 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { loginApi } from "../../helper/service/auth.service";
+import { useAuthStore } from "../../stores/auth.store";
 
 const Login = () => {
+    const navigate = useNavigate();
+    const setUser = useAuthStore((state) => state.setUser);
+
+    const onSubmit = async (event: any) => {
+        event.preventDefault();
+
+        const formData = new FormData(event.currentTarget);
+
+        const username = formData.get("email") as string;
+        const password = formData.get("password") as string;
+
+        try {
+            const response = await loginApi({
+                username,
+                password
+            });
+
+            console.log("Login successful:", response.data);
+            setUser(response.data.user);
+            navigate("/");
+        } catch (error) {
+            console.error("Login failed:", error);
+        }
+    };
     return (
         <div className="row justify-content-center pb-5">
             <div className="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
@@ -21,7 +47,7 @@ const Login = () => {
                         </div>
 
                         {/* Login Form */}
-                        <form>
+                        <form onSubmit={onSubmit}>
                             {/* Email */}
                             <div className="mb-3">
                                 <label

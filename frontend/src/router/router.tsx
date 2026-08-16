@@ -8,6 +8,7 @@ import ProductCheckout from "../pages/product/ProductCheckout";
 import ProductOrder from "../pages/product/ProductOrder";
 import Register from "../pages/authentication/Register";
 import MainLayout from "../layout/MainLayout";
+import ProtectedRoute from "./ProtectedRoute";
 
 
 const router = createBrowserRouter([
@@ -30,17 +31,24 @@ const router = createBrowserRouter([
                 path: "/products/:id",
                 element: <ProductDetails />,
             },
-            // {
-            //     path: "/cart",
-            //     element: <ProductCard />,
-            // },
+
+            // Protected routes
             {
-                path: "/checkout",
-                element: <ProductCheckout />,
-            },
-            {
-                path: "/orders",
-                element: <ProductOrder />,
+                element: <ProtectedRoute />,
+                children: [
+                    // {
+                    //     path: "/cart",
+                    //     element: <ProductCard />,
+                    // },
+                    {
+                        path: "/checkout",
+                        element: <ProductCheckout />,
+                    },
+                    {
+                        path: "/orders",
+                        element: <ProductOrder />,
+                    },
+                ],
             },
         ]
     }

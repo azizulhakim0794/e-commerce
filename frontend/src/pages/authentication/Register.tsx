@@ -1,7 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { registerApi } from "../../helper/service/auth.service";
+import { useAuthStore } from "../../stores/auth.store";
 
 const Register = () => {
+    const navigate = useNavigate();
+    const setUser = useAuthStore((state) => state.setUser);
+
     const onSubmit = async (event: any) => {
         event.preventDefault();
 
@@ -25,7 +29,9 @@ const Register = () => {
                 confirmation
             });
 
-            console.log("Registration successful:", response);
+            console.log("Registration successful:", response.data);
+            setUser(response.data.user);
+            navigate("/");
         } catch (error) {
             console.error("Registration failed:", error);
         }

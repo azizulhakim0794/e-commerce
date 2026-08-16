@@ -5,7 +5,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from .models import User
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
 
 
 # Create your views here.
@@ -42,22 +44,19 @@ def register(request):
 
     login(request, user)
 
-    # JWT tokens
-    refresh = RefreshToken.for_user(user)
-
-    return JsonResponse(
+    response = JsonResponse(
         {
-            "message": "Registrations successfully done ",
+            "message": "Registration successfully done",
             "user": {
                 "id": str(user.id),
                 "username": user.username,
                 "email": user.email,
             },
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
         },
         status=201,
     )
+
+    return response
 
 
 @require_POST
@@ -79,23 +78,50 @@ def login_view(request):
     # Django session
     login(request, user)
 
-    # JWT tokens
-    refresh = RefreshToken.for_user(user)
-
-    return JsonResponse(
+    response = JsonResponse(
         {
             "message": "Login successful",
             "user": {
-                "id": user.id,
+                "id": str(user.id),
                 "username": user.username,
+                "email": user.email,
             },
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-        }
+        },
+        status=200,
     )
 
+    return response
 
+
+@require_POST
 @csrf_exempt
 def logout_view(request):
     logout(request)
+
     return JsonResponse({"message": "Logout successful"})
+
+
+@api_view(["GET"])
+def me(request):
+    user = request.user
+
+    if not user.is_authenticated:
+        return Response(
+            {
+                "authenticated": False,
+                "user": None,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    return Response(
+        {
+            "authenticated": True,
+            "user": {
+                "id": str(user.id),
+                "username": user.username,
+                "email": user.email,
+            },
+        },
+        status=status.HTTP_200_OK,
+    )

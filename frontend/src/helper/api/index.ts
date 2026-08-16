@@ -10,15 +10,8 @@ const api = axios.create({
     },
 });
 
-api.interceptors.request.use((config) => {
-    const accessToken = localStorage.getItem("access_token");
-
-    if (accessToken) {
-        config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-
-    return config;
-});
+// Session-based authentication, no token needed
+// Credentials are automatically sent via cookies with withCredentials: true
 
 export const GET = async <T>(
     url: string,

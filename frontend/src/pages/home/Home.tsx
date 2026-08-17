@@ -3,36 +3,44 @@ import ProductCard from "../product/ProductCard";
 import { useEffect, useState } from "react";
 import { getProduct } from "../../helper/service/product.service";
 import type { Product } from "../../type/product";
+import { useApi } from "../../hooks/useApi";
 
 const Home = () => {
 
-    const [products, setProducts] = useState<Product[]>();
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [products, setProducts] = useState<Product[]>([]);
 
-    const fetchProduct = async () => {
-        try {
-            setLoading(true);
+    const {
+        handleRequest,
+        isLoading,
+        error,
+    } = useApi();
 
-            const response = await getProduct();
-            if (response.data && response.data.products) {
-                setProducts(response.data.products ?? []);
-            }
+    const fetchProducts = async () => {
+        const result = await handleRequest(
+            getProduct,
+            {}
+        );
 
-
-        } catch (error) {
-            setError("Failed to load product");
-        } finally {
-            setLoading(false);
+        if (result.success && result.data) {
+            setProducts(result.data.products);
         }
     };
 
     useEffect(() => {
-        fetchProduct();
+
+        fetchProducts();
     }, []);
 
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p>{error}</p>;
+    if (isLoading)
+        return <>Loading....</>
+
+    // if (error != null)
+    //     console.log(error)
+    // return <>got an error check you console.log</>
+
+
+
+
 
 
 

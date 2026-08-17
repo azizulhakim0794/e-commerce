@@ -73,3 +73,18 @@ export default defineConfig([
 ])
 
 ```
+
+
+for hooks 
+
+const result = await handleRequest(
+    deleteProduct,
+    {
+        productId,
+        date: productDate,
+    }
+);
+
+if (result.success) {
+    // next step
+}

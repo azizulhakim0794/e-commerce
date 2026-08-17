@@ -1,15 +1,73 @@
 import { Link, useParams } from "react-router-dom";
-import { products } from "../../data/product";
+// import { products } from "../../data/product";
 import ProductCard from "./ProductCard";
-// import { products } from "../data/products";
-// import ProductCard from "../components/ProductCard";
+import { useEffect, useState } from "react";
+import { useApi } from "../../hooks/useApi";
+import type { Product } from "../../type/product";
+import { getProduct } from "../../helper/service/product.service";
+// import { getProductById } from "../../helper/service/product.service";
+
 
 const ProductDetails = () => {
     const { id } = useParams();
 
-    const product = products.find(
-        (product) => product.id === Number(id)
-    );
+    const [products, setProducts] = useState<Product[]>([]);
+    const [product, setProduct] = useState<Product>();
+
+    const {
+        handleRequest,
+        isLoading,
+        error,
+    } = useApi();
+
+    const fetchProducts = async () => {
+        const result = await handleRequest(
+            getProduct,
+            {}
+        );
+
+        if (result.success && result.data) {
+            setProducts(result.data.products);
+        }
+    };
+
+    useEffect(() => {
+
+        fetchProducts();
+    }, []);
+
+    if (isLoading)
+        return <>Loading....</>
+
+
+
+
+
+
+    // const [product, setProducts] = useState<Product>();
+
+    // const {
+    //     handleRequest,
+    //     isLoading,
+    // } = useApi();
+
+    // const fetchProductById = async () => {
+    //     const result = await handleRequest(getProductById, id ? id : '0');
+
+    //     if (result.success && result.data && result.data) {
+    //         setProducts(result.data.product);
+    //     }
+    // };
+
+    // useEffect(() => {
+    //     fetchProductById();
+    // }, [id]);
+
+
+
+    // if (isLoading)
+    //     return <>Loading....</>
+
 
     // Product doesn't exist
     if (!product) {

@@ -1,23 +1,8 @@
+import type { AuthResponse, MeResponse } from "../../type/auth";
 import api from "../api";
 
-export interface AuthUser {
-    id: string;
-    username: string;
-    email: string;
-}
-
-export interface AuthResponse {
-    message: string;
-    user: AuthUser;
-}
-
-export interface MeResponse {
-    authenticated: boolean;
-    user: AuthUser | null;
-}
-
 export const loginApi = (data: { username: string; password: string }) => {
-    return api.post<AuthResponse>("/auth/login/", data);
+    return api.post<AuthResponse>("/auth/login", data);
 };
 
 export const registerApi = (data: {
@@ -26,15 +11,15 @@ export const registerApi = (data: {
     password: string;
     confirmation: string;
 }) => {
-    return api.post<AuthResponse>("/auth/register/", data);
+    return api.post<AuthResponse>("/auth/register", data);
 };
 
 export const logoutApi = () => {
-    return api.post<{ message: string }>("/auth/logout/");
+    return api.post<{ message: string }>("/auth/logout");
 };
 
 export const getMe = () => {
-    return api.get<MeResponse>("/auth/me/");
+    return api.get<MeResponse>("/auth/me");
 };
 
 export const getAuthErrorMessage = (error: unknown, fallback: string) => {

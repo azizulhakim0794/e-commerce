@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
-import type { Product } from "../../type/product";
 import { products } from "../../data/product";
 import ProductCard from "../product/ProductCard";
 
 const Home = () => {
+
+    // useEffect((
+
+    // )=>[])
 
 
 

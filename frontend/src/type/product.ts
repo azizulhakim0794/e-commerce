@@ -6,3 +6,7 @@ export interface Product {
     stock: number;
     image: string;
 }
+
+export interface ProductResponse {
+    products: Product[];
+}

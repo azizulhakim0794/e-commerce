@@ -1,12 +1,38 @@
 import { Link } from "react-router-dom";
-import { products } from "../../data/product";
 import ProductCard from "../product/ProductCard";
+import { useEffect, useState } from "react";
+import { getProduct } from "../../helper/service/product.service";
+import type { Product } from "../../type/product";
 
 const Home = () => {
 
-    // useEffect((
+    const [products, setProducts] = useState<Product[]>();
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    // )=>[])
+    const fetchProduct = async () => {
+        try {
+            setLoading(true);
+
+            const response = await getProduct();
+            if (response.data && response.data.products) {
+                setProducts(response.data.products ?? []);
+            }
+
+
+        } catch (error) {
+            setError("Failed to load product");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchProduct();
+    }, []);
+
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p>{error}</p>;
 
 
 
@@ -94,7 +120,7 @@ const Home = () => {
                 </div>
 
                 <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-                    {products.map((product) => (
+                    {products && products.map((product) => (
                         <ProductCard
                             key={product.id}
                             product={product}

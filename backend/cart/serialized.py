@@ -1,23 +1,28 @@
-def serialize_cart_item(cart_item) -> dict:
+from decimal import Decimal
+
+
+def serialize_cart_item(item):
+    subtotal = item.product.price * item.quantity
+
     return {
-        "id": cart_item.id,
+        "id": item.id,
         "product": {
-            "id": cart_item.product.id,
-            "name": cart_item.product.name,
-            "price": cart_item.product.price,
-            "image": cart_item.product.image,
+            "id": item.product.id,
+            "name": item.product.name,
+            "price": item.product.price,
+            "image": item.product.image,
         },
-        "quantity": cart_item.quantity,
-        "added_at": cart_item.added_at,
-        "updated_at": cart_item.updated_at,
+        "quantity": item.quantity,
+        "subtotal": subtotal,
     }
 
 
-def serialize_cart(cart) -> dict:
+def serialize_cart(cart):
+    items = cart.items.select_related("product").all()
+
     return {
-        "id": cart.id,
-        "user": cart.user.id,
-        "items": [serialize_cart_item(item) for item in cart.items.all()],
-        "created_at": cart.created_at,
-        "updated_at": cart.updated_at,
+        "items": [serialize_cart_item(item) for item in items],
+        "item_count": items.count(),
+        "total_quantity": sum(item.quantity for item in items),
+        "subtotal": sum(item.product.price * item.quantity for item in items),
     }

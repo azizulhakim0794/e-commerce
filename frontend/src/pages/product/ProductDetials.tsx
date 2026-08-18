@@ -1,10 +1,10 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 // import { products } from "../../data/product";
 import ProductCard from "./ProductCard";
 import { useEffect, useState } from "react";
 import { useApi } from "../../hooks/useApi";
 import type { Product } from "../../type/product";
-import { getProduct } from "../../helper/service/product.service";
+import { addToCart, getProduct } from "../../helper/service/product.service";
 // import { getProductById } from "../../helper/service/product.service";
 
 
@@ -13,7 +13,8 @@ const ProductDetails = () => {
 
     const [products, setProducts] = useState<Product[]>([]);
     const [product, setProduct] = useState<Product>();
-    const [stock, setStock] = useState<number>(1)
+    const [cartCount, setCartCount] = useState<number>(1);
+    const navigate = useNavigate();
 
     const {
         handleRequest,
@@ -44,16 +45,10 @@ const ProductDetails = () => {
             const foundProduct = products.find(
                 (product) => product.id.toString() === id
             );
-
+            setCartCount(1)
             setProduct(foundProduct);
         }
     }, [id, products]);
-
-    // const addstock = () => {
-
-    //     s
-
-    // }
 
     if (isLoading)
         return <>Loading....</>
@@ -82,6 +77,28 @@ const ProductDetails = () => {
     const isOutOfStock = product.stock === 0;
     const isLowStock =
         product.stock > 0 && product.stock <= 5;
+
+
+    // cart item oparations 
+    const addProductIntoCart = async (product_id: number) => {
+
+        console.log(product_id, cartCount)
+        const result = await handleRequest(
+            addToCart,
+            {
+                product_id: product_id,
+                quantity: cartCount,
+            }
+        );
+
+        if (result.success) {
+            // go to the /cart page
+            navigate("/cart");
+
+            // next step
+        }
+
+    }
 
     return (
         <>
@@ -193,8 +210,8 @@ const ProductDetails = () => {
                                     <button
                                         className="btn btn-outline-secondary"
                                         type="button"
-                                        disabled={stock <= 1}
-                                        onClick={() => setStock((prev) => Math.max(1, prev - 1))}
+                                        disabled={cartCount <= 1}
+                                        onClick={() => setCartCount((prev) => Math.max(1, prev - 1))}
                                     >
                                         −
                                     </button>
@@ -202,7 +219,7 @@ const ProductDetails = () => {
                                     <input
                                         type="number"
                                         className="form-control text-center"
-                                        value={stock}
+                                        value={cartCount}
                                         min={1}
                                         max={product.stock}
                                         readOnly
@@ -211,9 +228,9 @@ const ProductDetails = () => {
                                     <button
                                         className="btn btn-outline-secondary"
                                         type="button"
-                                        disabled={stock >= product.stock}
+                                        disabled={cartCount >= product.stock}
                                         onClick={() =>
-                                            setStock((prev) => Math.min(product.stock, prev + 1))
+                                            setCartCount((prev) => Math.min(product.stock, prev + 1))
                                         }
                                     >
                                         +
@@ -227,6 +244,7 @@ const ProductDetails = () => {
                             <button
                                 className="btn btn-primary btn-lg"
                                 disabled={isOutOfStock}
+                                onClick={() => addProductIntoCart(product.id)}
                             >
                                 🛒 Add to Cart
                             </button>

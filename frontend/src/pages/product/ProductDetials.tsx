@@ -13,6 +13,7 @@ const ProductDetails = () => {
 
     const [products, setProducts] = useState<Product[]>([]);
     const [product, setProduct] = useState<Product>();
+    const [stock, setStock] = useState<number>(1)
 
     const {
         handleRequest,
@@ -36,37 +37,26 @@ const ProductDetails = () => {
         fetchProducts();
     }, []);
 
+
+    // Find the product after products are loaded
+    useEffect(() => {
+        if (id && products.length > 0) {
+            const foundProduct = products.find(
+                (product) => product.id.toString() === id
+            );
+
+            setProduct(foundProduct);
+        }
+    }, [id, products]);
+
+    // const addstock = () => {
+
+    //     s
+
+    // }
+
     if (isLoading)
         return <>Loading....</>
-
-
-
-
-
-
-    // const [product, setProducts] = useState<Product>();
-
-    // const {
-    //     handleRequest,
-    //     isLoading,
-    // } = useApi();
-
-    // const fetchProductById = async () => {
-    //     const result = await handleRequest(getProductById, id ? id : '0');
-
-    //     if (result.success && result.data && result.data) {
-    //         setProducts(result.data.product);
-    //     }
-    // };
-
-    // useEffect(() => {
-    //     fetchProductById();
-    // }, [id]);
-
-
-
-    // if (isLoading)
-    //     return <>Loading....</>
 
 
     // Product doesn't exist
@@ -203,6 +193,8 @@ const ProductDetails = () => {
                                     <button
                                         className="btn btn-outline-secondary"
                                         type="button"
+                                        disabled={stock <= 1}
+                                        onClick={() => setStock((prev) => Math.max(1, prev - 1))}
                                     >
                                         −
                                     </button>
@@ -210,8 +202,8 @@ const ProductDetails = () => {
                                     <input
                                         type="number"
                                         className="form-control text-center"
-                                        value="1"
-                                        min="1"
+                                        value={stock}
+                                        min={1}
                                         max={product.stock}
                                         readOnly
                                     />
@@ -219,6 +211,10 @@ const ProductDetails = () => {
                                     <button
                                         className="btn btn-outline-secondary"
                                         type="button"
+                                        disabled={stock >= product.stock}
+                                        onClick={() =>
+                                            setStock((prev) => Math.min(product.stock, prev + 1))
+                                        }
                                     >
                                         +
                                     </button>

@@ -13,6 +13,8 @@ def serialize_product(product) -> dict:
         "price": product.price,
         "stock": product.stock,
         "image": product.image,
+        "created_at": product.created_at,
+        "updated_at": product.updated_at,
     }
 
 

@@ -71,7 +71,7 @@ const Cart = () => {
     return (
         <div className="container py-5">
 
-            <div className={`row g-4 ${cart && cart.items.length == 0 ? 'justify-content-center mt-4' : ''}`}>
+            <div className={`row g-4 ${((cart && cart.items.length == 0) || cart == null) ? 'justify-content-center mt-4' : ''}`}>
 
                 {/* ================= CART ITEMS ================= */}
                 <div className="col-lg-8">

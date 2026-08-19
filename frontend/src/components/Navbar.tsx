@@ -37,17 +37,20 @@ const Navbar = () => {
                             </Link>
                         </li>
 
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/cart">
-                                Cart
-                            </Link>
-                        </li>
 
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/orders">
-                                Orders
-                            </Link>
-                        </li>
+                        {user ? <>
+                            <li className="nav-item">
+                                <Link className="nav-link" to="/cart">
+                                    Cart
+                                </Link>
+                            </li>
+
+                            <li className="nav-item">
+                                <Link className="nav-link" to="/orders">
+                                    Orders
+                                </Link>
+                            </li>
+                        </> : <></>}
                     </ul>
 
                     <div className="d-flex align-items-center gap-2">

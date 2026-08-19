@@ -10,3 +10,22 @@ export interface Product {
 export interface ProductResponse {
     products: Product[];
 }
+
+export interface CartItem {
+    id: number;
+    product: {
+        id: number;
+        name: string;
+        price: number;
+        image: string;
+    };
+    quantity: number;
+    subtotal: number;
+}
+
+export interface Cart {
+    items: CartItem[];
+    item_count: number;
+    total_quantity: number;
+    subtotal: number;
+}

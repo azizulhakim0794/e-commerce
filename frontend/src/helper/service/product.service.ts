@@ -23,3 +23,8 @@ export const getCartItems = () => {
 export const deleteProductFromCart = (product_id: number) => {
     return api.delete("/cart/" + product_id);
 };
+
+export const createOrder = (data: { full_name: string, phone_number: string, delivery_address: string, city: string, post_code: string }) => {
+    return api.post("/orders", data);
+};
+

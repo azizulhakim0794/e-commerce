@@ -337,7 +337,7 @@ const ProductDetails = () => {
                     </div>
 
                     <Link
-                        to="/products"
+                        to="/"
                         className="btn btn-outline-primary"
                     >
                         View All

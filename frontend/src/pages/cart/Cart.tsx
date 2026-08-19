@@ -1,29 +1,20 @@
 import { useEffect, useState } from "react";
 import { useApi } from "../../hooks/useApi";
-import { getCartItems } from "../../helper/service/product.service";
+import { deleteProductFromCart, getCartItems } from "../../helper/service/product.service";
+import type { Cart } from "../../type/product";
+import OrderConfirmModal from "../modals/OrderConfirmModal";
 
 const Cart = () => {
 
-    type cartData = {
-        id: number,
-        product: {
-            id: number,
-            name: string,
-            price: number,
-            image: string,
-        },
-        quantity: number,
-        subtotal: number
+    interface orderedProductType {
+        cart_id?: number,
+        product_id: number,
+        quantity?: number,
     }
 
-    type cartType = {
-        items: cartData[],
-        item_count: number,
-        total_quantity: number,
-        subtotal: number
-    }
-
-    const [cart, setCart] = useState<cartType>();
+    const [cart, setCart] = useState<Cart>();
+    const [showOrderModal, setShowOrderModal] = useState<boolean>(false);
+    const [orderdProduct, setOrderdProduct] = useState<orderedProductType[]>();
 
     const {
         handleRequest,
@@ -38,40 +29,61 @@ const Cart = () => {
         );
 
         if (result.success && result.data) {
-            console.log(result.data)
+
+            const orderedProducts = result.data.cart.items.map((item: any) => ({
+                cart_id: item.id,
+                product_id: item.product.id,
+                quantity: item.quantity
+            }));
+
+            setOrderdProduct(orderedProducts)
             setCart(result.data.cart)
         }
     };
 
     useEffect(() => {
+        if (!showOrderModal) {
+            fetchProducts();
+        }
 
-        fetchProducts();
-    }, []);
+    }, [showOrderModal]);
 
     if (isLoading)
         return <>Loading....</>
 
 
-    const removeProductFromCart = (product_id: number) => {
+    const removeProductFromCart = async (product_id: number) => {
+
+        const result = await handleRequest(
+            deleteProductFromCart, product_id
+        );
+
+        if (result.success) {
+            // next step
+            fetchProducts();
+        }
+
 
     }
+
+
 
     return (
         <div className="container py-5">
 
-            <div className="row g-4">
+            <div className={`row g-4 ${cart && cart.items.length == 0 ? 'justify-content-center mt-4' : ''}`}>
 
                 {/* ================= CART ITEMS ================= */}
                 <div className="col-lg-8">
 
-                    <div className="d-flex justify-content-between align-items-center mb-4">
+                    {cart && cart.items.length > 0 ? <div className="d-flex justify-content-between align-items-center mb-4">
                         <div>
                             <h2 className="fw-bold mb-1">Shopping Cart</h2>
                             <p className="text-muted mb-0">
                                 {cart?.item_count ?? 0} item(s) in your cart
                             </p>
                         </div>
-                    </div>
+                    </div> : <></>}
 
                     {cart && cart.items.length > 0 ? (
                         cart.items.map((item) => (
@@ -135,7 +147,7 @@ const Cart = () => {
                                             <button
                                                 type="button"
                                                 className="btn btn-sm btn-outline-danger"
-                                                onClick={() => removeProductFromCart(item.id)}
+                                                onClick={() => removeProductFromCart(item.product.id)}
                                             >
                                                 Remove
                                             </button>
@@ -159,7 +171,7 @@ const Cart = () => {
 
 
                 {/* ================= CART SUMMARY ================= */}
-                <div className="col-lg-4">
+                {cart && cart.items.length > 0 ? <div className="col-lg-4">
 
                     {cart && cart.items.length > 0 && (
                         <div
@@ -211,9 +223,7 @@ const Cart = () => {
                                 <button
                                     type="button"
                                     className="btn btn-primary btn-lg w-100 fw-semibold"
-                                    onClick={() => {
-                                        // go to checkout/order page
-                                    }}
+                                    onClick={() => setShowOrderModal(true)}
                                 >
                                     Order Now
                                 </button>
@@ -226,9 +236,18 @@ const Cart = () => {
                         </div>
                     )}
 
-                </div>
+                </div> : <></>}
 
             </div>
+
+            {cart && <OrderConfirmModal
+                show={showOrderModal}
+                onClose={() => setShowOrderModal(false)}
+                // onConfirm={handlePlaceOrder}
+                // orderdProduct={orderdProduct}
+                total_price={cart.subtotal}
+            />}
+
         </div>
     );
 }

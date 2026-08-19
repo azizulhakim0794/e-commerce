@@ -106,10 +106,10 @@ from cart.serialized import serialize_cart
 #     )
 
 
-@api_view(["GET", "POST"])
+@api_view(["GET", "POST", "DELETE"])
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])
-def cart(request):
+def cart(request, product_id=None):
 
     # =========================
     # GET /api/cart
@@ -202,4 +202,43 @@ def cart(request):
                 "cart": serialize_cart(cart),
             },
             status=status.HTTP_201_CREATED,
+        )
+
+    # =========================
+    # DELETE /api/cart/<int:product_id>
+    # =========================
+
+    if request.method == "DELETE":
+
+        # product_id = product_id
+
+        if not product_id:
+            return Response(
+                {"error": "product id is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        cart = Cart.objects.filter(user=request.user).first()
+
+        if not cart:
+            return Response(
+                {"error": "Cart not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        cart_item = CartItem.objects.filter(cart=cart, product_id=product_id).first()
+
+        if not cart_item:
+            return Response(
+                {"error": "Product is not in your cart"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        cart_item.delete()
+
+        return Response(
+            {
+                "message": "Product removed from cart",
+                "cart": serialize_cart(cart),
+            },
+            status=status.HTTP_200_OK,
         )

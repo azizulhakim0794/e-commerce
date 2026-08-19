@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { getProduct } from "../../helper/service/product.service";
 import type { Product } from "../../type/product";
 import { useApi } from "../../hooks/useApi";
+import { useAuthStore } from "../../stores/auth.store";
 
 const Home = () => {
 
     const [products, setProducts] = useState<Product[]>([]);
+    const { user } = useAuthStore();
 
     const {
         handleRequest,
@@ -77,12 +79,12 @@ const Home = () => {
                                     Browse Products
                                 </Link> */}
 
-                                <Link
+                                {!user ? <Link
                                     to="/register"
                                     className="btn btn-primary btn-lg"
                                 >
                                     Create Account
-                                </Link>
+                                </Link> : <></>}
                             </div>
                         </div>
 
@@ -277,15 +279,6 @@ const Home = () => {
                                     className="text-decoration-none text-muted"
                                 >
                                     Home
-                                </Link>
-                            </li>
-
-                            <li className="mb-2">
-                                <Link
-                                    to="/products"
-                                    className="text-decoration-none text-muted"
-                                >
-                                    Products
                                 </Link>
                             </li>
 

@@ -28,3 +28,7 @@ export const createOrder = (data: { full_name: string, phone_number: string, del
     return api.post("/orders", data);
 };
 
+export const getOrder = () => {
+    return api.get("/orders");
+};
+

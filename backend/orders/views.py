@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 # from cart.models import Cart, CartItem
-# from products.models import Product
+from products.models import Product
 from orders.serialized import serialize_order
 from cart.models import Cart
 from .models import Order, OrderItem
@@ -56,32 +56,22 @@ from .models import Order, OrderItem
 def order(request):
 
     if request.method == "GET":
-        # orders = (
-        #     Order.objects.filter(user=request.user)
-        #     .prefetch_related("items")
-        #     .order_by("-created_at")
-        # )
-
-        # if not orders.exists():
-        #     return Response(
-        #         {"orders": []},
-        #         status=status.HTTP_200_OK,
-        #     )
-
-        # return Response(
-        #     {
-        #         "orders": [serialize_order(order) for order in orders],
-        #     },
-        #     status=status.HTTP_200_OK,
-        # )
         orders = (
             Order.objects.filter(user=request.user)
             .prefetch_related("items")
             .order_by("-created_at")
         )
 
+        if not orders.exists():
+            return Response(
+                {"orders": []},
+                status=status.HTTP_200_OK,
+            )
+
         return Response(
-            {"orders": [serialize_order(order) for order in orders]},
+            {
+                "orders": [serialize_order(order) for order in orders],
+            },
             status=status.HTTP_200_OK,
         )
 
@@ -273,3 +263,177 @@ def order(request):
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+@api_view(["POST"])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def create_one_order(request):
+
+    # -------------------------
+    # Get request data
+    # -------------------------
+
+    product_id = request.data.get("product_id")
+    quantity = request.data.get("quantity")
+
+    full_name = request.data.get("full_name")
+    phone_number = request.data.get("phone_number")
+    delivery_address = request.data.get("delivery_address")
+    city = request.data.get("city")
+    post_code = request.data.get("post_code")
+
+    # -------------------------
+    # Validate required fields
+    # -------------------------
+
+    required_fields = {
+        "product_id": product_id,
+        "quantity": quantity,
+        "full_name": full_name,
+        "phone_number": phone_number,
+        "delivery_address": delivery_address,
+        "city": city,
+        "post_code": post_code,
+    }
+
+    for field, value in required_fields.items():
+        if value is None or value == "":
+            return Response(
+                {"error": f"{field} is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    # -------------------------
+    # Validate quantity
+    # -------------------------
+
+    try:
+        product_id = int(product_id)
+        quantity = int(quantity)
+    except (TypeError, ValueError):
+        return Response(
+            {"error": "product_id and quantity must be valid numbers."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if quantity <= 0:
+        return Response(
+            {"error": "Quantity must be greater than 0."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # -------------------------
+    # Create Order + OrderItem
+    # + decrease stock
+    # -------------------------
+
+    try:
+        with transaction.atomic():
+
+            # Lock the product row while checking stock.
+            product = Product.objects.select_for_update().get(id=product_id)
+
+            # -------------------------
+            # Check stock
+            # -------------------------
+
+            if product.stock < quantity:
+                return Response(
+                    {
+                        "error": "Not enough stock available.",
+                        "available_stock": product.stock,
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # -------------------------
+            # Calculate prices
+            # -------------------------
+
+            subtotal = product.price * quantity
+
+            delivery_fee = Decimal("0.00")
+
+            total = subtotal + delivery_fee
+
+            # -------------------------
+            # Create Order
+            # -------------------------
+
+            order = Order.objects.create(
+                user=request.user,
+                full_name=full_name,
+                phone_number=phone_number,
+                delivery_address=delivery_address,
+                city=city,
+                post_code=post_code,
+                subtotal=subtotal,
+                delivery_fee=delivery_fee,
+                total=total,
+                status=Order.Status.PENDING,
+            )
+
+            # -------------------------
+            # Create OrderItem
+            # -------------------------
+
+            order_item = OrderItem.objects.create(
+                order=order,
+                product=product,
+                product_name=product.name,
+                product_price=product.price,
+                product_image=product.image,
+                quantity=quantity,
+                subtotal=subtotal,
+            )
+
+            # -------------------------
+            # Decrease stock
+            # -------------------------
+
+            product.stock -= quantity
+
+            product.save(update_fields=["stock"])
+
+    except Product.DoesNotExist:
+        return Response(
+            {"error": "Product not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # -------------------------
+    # Return response
+    # -------------------------
+
+    return Response(
+        {
+            "message": "Order created successfully.",
+            "order": {
+                "id": order.id,
+                "status": order.status,
+                "full_name": order.full_name,
+                "phone_number": order.phone_number,
+                "delivery_address": order.delivery_address,
+                "city": order.city,
+                "post_code": order.post_code,
+                "subtotal": order.subtotal,
+                "delivery_fee": order.delivery_fee,
+                "total": order.total,
+                "created_at": order.created_at,
+                "updated_at": order.updated_at,
+                "items": [
+                    {
+                        "id": order_item.id,
+                        "product_id": order_item.product_id,
+                        "product_name": order_item.product_name,
+                        "product_price": order_item.product_price,
+                        "product_image": order_item.product_image,
+                        "quantity": order_item.quantity,
+                        "subtotal": order_item.subtotal,
+                    }
+                ],
+            },
+        },
+        status=status.HTTP_201_CREATED,
+    )

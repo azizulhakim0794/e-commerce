@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useApi } from "../../hooks/useApi";
 import type { Product } from "../../type/product";
 import { addToCart, getProduct } from "../../helper/service/product.service";
+import OrderConfirmModal from "../modals/OrderConfirmModal";
 // import { getProductById } from "../../helper/service/product.service";
 
 
@@ -14,6 +15,7 @@ const ProductDetails = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [product, setProduct] = useState<Product>();
     const [cartCount, setCartCount] = useState<number>(1);
+    const [showOrderModal, setShowOrderModal] = useState<boolean>(false)
     const navigate = useNavigate();
 
     const {
@@ -252,6 +254,7 @@ const ProductDetails = () => {
                             <button
                                 className="btn btn-success btn-lg"
                                 disabled={isOutOfStock}
+                                onClick={() => setShowOrderModal(true)}
                             >
                                 Buy Now
                             </button>
@@ -297,6 +300,16 @@ const ProductDetails = () => {
                                 </div>
                             </div>
                         </div>
+
+                        {/* checkout modals start */}
+                        <OrderConfirmModal
+                            show={showOrderModal}
+                            onClose={() => setShowOrderModal(false)}
+                            // onConfirm={handlePlaceOrder}
+                            orderdProduct={{ quantity: cartCount, product_id: product.id }}
+                            total_price={Number((cartCount * product.price).toFixed(2))}
+                        />
+                        {/* checkout modals end */}
                     </div>
                 </div>
             </section>

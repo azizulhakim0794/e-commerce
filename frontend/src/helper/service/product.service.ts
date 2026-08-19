@@ -28,6 +28,10 @@ export const createOrder = (data: { full_name: string, phone_number: string, del
     return api.post("/orders", data);
 };
 
+export const createOrderFromHome = (data: { product_id?: number, quantity?: number, full_name: string, phone_number: string, delivery_address: string, city: string, post_code: string }) => {
+    return api.post("/ordersone", data);
+};
+
 export const getOrder = () => {
     return api.get("/orders");
 };

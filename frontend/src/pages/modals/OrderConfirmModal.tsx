@@ -1,12 +1,13 @@
 import { Modal, Button, Form } from "react-bootstrap";
-import { createOrder } from "../../helper/service/product.service";
+import { createOrder, createOrderFromHome } from "../../helper/service/product.service";
 import { useApi } from "../../hooks/useApi";
+import { useNavigate } from "react-router-dom";
 
 interface OrderConfirmModalProps {
     show: boolean;
     onClose: () => void;
     // onConfirm: () => void;
-    // orderedProduct?: OrderedProduct[];
+    orderdProduct?: { quantity: number, product_id: number };
     total_price?: number;
 }
 
@@ -14,11 +15,12 @@ const OrderConfirmModal = ({
     show,
     onClose,
     // onConfirm,
-    // orderedProduct,
+    orderdProduct,
     total_price,
 }: OrderConfirmModalProps) => {
 
     const { handleRequest, isLoading } = useApi();
+    const navigate = useNavigate()
 
     const onSubmit = async (
         event: React.FormEvent<HTMLFormElement>
@@ -39,11 +41,8 @@ const OrderConfirmModal = ({
         // }
 
         const orderData = {
-            // cart_id: orderedProduct[0]?.cart_id,
-            // products: orderedProduct.map((product) => ({
-            //     product_id: product.product_id,
-            //     quantity: product.quantity,
-            // })),
+            product_id: orderdProduct?.product_id,
+            quantity: orderdProduct?.quantity,
             full_name: fullName,
             phone_number: phoneNumber,
             delivery_address: address,
@@ -54,13 +53,16 @@ const OrderConfirmModal = ({
         console.log("Order data:", orderData);
 
         const result = await handleRequest(
-            createOrder,
+            orderdProduct?.product_id ? createOrderFromHome : createOrder,
             orderData
         );
 
         if (result.success) {
             // onConfirm();
             onClose();
+            if (orderdProduct?.product_id) {
+                navigate("/orders")
+            }
         }
     };
 

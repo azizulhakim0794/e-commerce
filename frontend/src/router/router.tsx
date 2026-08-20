@@ -10,6 +10,7 @@ import Register from "../pages/authentication/Register";
 import MainLayout from "../layout/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
 import Cart from "../pages/cart/Cart";
+import AboutPage from "../pages/aboutUs/AboutUs";
 
 
 const router = createBrowserRouter([
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
             {
                 path: "/login",
                 element: <Login />,
+            },
+            {
+                path: "/about-us",
+                element: <AboutPage />,
             },
             {
                 path: "/register",

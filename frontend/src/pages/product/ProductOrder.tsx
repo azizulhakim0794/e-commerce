@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useApi } from "../../hooks/useApi";
 import { getOrder } from "../../helper/service/product.service";
+import { Link } from "react-router-dom";
 
 interface OrderItem {
     id: number;
@@ -158,12 +159,13 @@ const ProductOrder = () => {
                                 You haven't placed any orders yet.
                             </p>
 
-                            <button
-                                type="button"
+                            <Link
+                                to="/"
                                 className="btn btn-dark px-4"
+
                             >
                                 Start Shopping
-                            </button>
+                            </Link>
 
                         </div>
                     </div>

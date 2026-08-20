@@ -242,7 +242,7 @@ const Home = () => {
                 </p>
 
                 <Link
-                    to="/products"
+                    to="/"
                     className="btn btn-light btn-lg"
                 >
                     Start Shopping

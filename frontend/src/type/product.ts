@@ -23,7 +23,7 @@ export interface CartItem {
     subtotal: number;
 }
 
-export interface Cart {
+export interface CartType {
     items: CartItem[];
     item_count: number;
     total_quantity: number;

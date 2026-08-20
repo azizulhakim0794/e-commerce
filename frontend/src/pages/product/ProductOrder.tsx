@@ -37,10 +37,6 @@ interface Order {
     items: OrderItem[];
 }
 
-interface OrdersResponse {
-    orders: Order[];
-}
-
 const ProductOrder = () => {
 
     const [orders, setOrders] = useState<Order[]>([]);

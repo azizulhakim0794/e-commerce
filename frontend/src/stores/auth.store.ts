@@ -1,5 +1,11 @@
 import { create } from "zustand";
-import { getMe, logoutApi, type AuthUser } from "../helper/service/auth.service";
+import { getMe, logoutApi } from "../helper/service/auth.service";
+
+export interface AuthUser {
+    id: string;
+    username: string;
+    email: string;
+}
 
 interface AuthState {
     user: AuthUser | null;

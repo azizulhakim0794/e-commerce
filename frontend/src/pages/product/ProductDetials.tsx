@@ -21,7 +21,6 @@ const ProductDetails = () => {
     const {
         handleRequest,
         isLoading,
-        error,
     } = useApi();
 
     const fetchProducts = async () => {

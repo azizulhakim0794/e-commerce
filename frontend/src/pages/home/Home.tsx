@@ -14,7 +14,6 @@ const Home = () => {
     const {
         handleRequest,
         isLoading,
-        error,
     } = useApi();
 
     const fetchProducts = async () => {

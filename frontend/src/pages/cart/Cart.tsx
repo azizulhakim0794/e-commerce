@@ -1,25 +1,18 @@
 import { useEffect, useState } from "react";
 import { useApi } from "../../hooks/useApi";
 import { deleteProductFromCart, getCartItems } from "../../helper/service/product.service";
-import type { Cart } from "../../type/product";
+import type { CartType } from "../../type/product";
 import OrderConfirmModal from "../modals/OrderConfirmModal";
 
 const Cart = () => {
 
-    interface orderedProductType {
-        cart_id?: number,
-        product_id: number,
-        quantity?: number,
-    }
-
-    const [cart, setCart] = useState<Cart>();
+    const [cart, setCart] = useState<CartType>();
     const [showOrderModal, setShowOrderModal] = useState<boolean>(false);
-    const [orderdProduct, setOrderdProduct] = useState<orderedProductType[]>();
+    // const [orderdProduct, setOrderdProduct] = useState<orderedProductType[]>();
 
     const {
         handleRequest,
         isLoading,
-        error,
     } = useApi();
 
     const fetchProducts = async () => {
@@ -30,13 +23,13 @@ const Cart = () => {
 
         if (result.success && result.data) {
 
-            const orderedProducts = result.data.cart.items.map((item: any) => ({
-                cart_id: item.id,
-                product_id: item.product.id,
-                quantity: item.quantity
-            }));
+            // const orderedProducts = result.data.cart.items.map((item: any) => ({
+            //     cart_id: item.id,
+            //     product_id: item.product.id,
+            //     quantity: item.quantity
+            // }));
 
-            setOrderdProduct(orderedProducts)
+            // setOrderdProduct(orderedProducts)
             setCart(result.data.cart)
         }
     };

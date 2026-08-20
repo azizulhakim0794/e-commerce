@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import type { Product } from "../../type/product";
 // import type { Product } from "../types/product";
 

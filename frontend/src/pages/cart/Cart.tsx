@@ -8,7 +8,6 @@ const Cart = () => {
 
     const [cart, setCart] = useState<CartType>();
     const [showOrderModal, setShowOrderModal] = useState<boolean>(false);
-    // const [orderdProduct, setOrderdProduct] = useState<orderedProductType[]>();
 
     const {
         handleRequest,
@@ -22,14 +21,6 @@ const Cart = () => {
         );
 
         if (result.success && result.data) {
-
-            // const orderedProducts = result.data.cart.items.map((item: any) => ({
-            //     cart_id: item.id,
-            //     product_id: item.product.id,
-            //     quantity: item.quantity
-            // }));
-
-            // setOrderdProduct(orderedProducts)
             setCart(result.data.cart)
         }
     };

@@ -70,9 +70,9 @@ const Login = () => {
                                     <label htmlFor="password" className="form-label fw-semibold">
                                         Password
                                     </label>
-                                    <Link to="/forgot-password" className="text-decoration-none small">
+                                    {/* <Link to="/forgot-password" className="text-decoration-none small">
                                         Forgot password?
-                                    </Link>
+                                    </Link> */}
                                 </div>
                                 <input
                                     type="password"

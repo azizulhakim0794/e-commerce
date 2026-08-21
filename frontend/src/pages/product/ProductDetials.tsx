@@ -6,6 +6,7 @@ import { useApi } from "../../hooks/useApi";
 import type { Product } from "../../type/product";
 import { addToCart, getProduct } from "../../helper/service/product.service";
 import OrderConfirmModal from "../modals/OrderConfirmModal";
+import { useAuthStore } from "../../stores/auth.store";
 // import { getProductById } from "../../helper/service/product.service";
 
 
@@ -16,6 +17,7 @@ const ProductDetails = () => {
     const [product, setProduct] = useState<Product>();
     const [cartCount, setCartCount] = useState<number>(1);
     const [showOrderModal, setShowOrderModal] = useState<boolean>(false)
+    const { user } = useAuthStore();
     const navigate = useNavigate();
 
     const {
@@ -245,7 +247,7 @@ const ProductDetails = () => {
                             <button
                                 className="btn btn-primary btn-lg"
                                 disabled={isOutOfStock}
-                                onClick={() => addProductIntoCart(product.id)}
+                                onClick={() => user ? addProductIntoCart(product.id) : navigate("/register")}
                             >
                                 🛒 Add to Cart
                             </button>
@@ -253,7 +255,7 @@ const ProductDetails = () => {
                             <button
                                 className="btn btn-success btn-lg"
                                 disabled={isOutOfStock}
-                                onClick={() => setShowOrderModal(true)}
+                                onClick={() => user ? setShowOrderModal(true) : navigate("/register")}
                             >
                                 Buy Now
                             </button>
@@ -311,12 +313,12 @@ const ProductDetails = () => {
                         {/* checkout modals end */}
                     </div>
                 </div>
-            </section>
+            </section >
 
             {/* =========================
           Description
       ========================== */}
-            <section className="border-top pt-5 mb-5">
+            < section className="border-top pt-5 mb-5" >
                 <h2 className="fw-bold mb-4">
                     Product Description
                 </h2>
@@ -331,12 +333,12 @@ const ProductDetails = () => {
                     our products to provide quality and value to
                     our customers.
                 </p>
-            </section>
+            </section >
 
             {/* =========================
           Related Products
       ========================== */}
-            <section className="mb-5">
+            < section className="mb-5" >
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h2 className="fw-bold mb-1">
@@ -367,7 +369,7 @@ const ProductDetails = () => {
                             />
                         ))}
                 </div>
-            </section>
+            </section >
         </>
     );
 };

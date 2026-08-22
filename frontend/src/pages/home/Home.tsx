@@ -5,6 +5,7 @@ import { getProduct } from "../../helper/service/product.service";
 import type { Product } from "../../type/product";
 import { useApi } from "../../hooks/useApi";
 import { useAuthStore } from "../../stores/auth.store";
+import Loading from "../../components/loading";
 
 const Home = () => {
 
@@ -33,7 +34,7 @@ const Home = () => {
     }, []);
 
     if (isLoading)
-        return <>Loading....</>
+        return <><Loading /></>
 
     // if (error != null)
     //     console.log(error)

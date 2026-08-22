@@ -7,6 +7,7 @@ import type { Product } from "../../type/product";
 import { addToCart, getProduct } from "../../helper/service/product.service";
 import OrderConfirmModal from "../modals/OrderConfirmModal";
 import { useAuthStore } from "../../stores/auth.store";
+import Loading from "../../components/loading";
 // import { getProductById } from "../../helper/service/product.service";
 
 
@@ -54,7 +55,7 @@ const ProductDetails = () => {
     }, [id, products]);
 
     if (isLoading)
-        return <>Loading....</>
+        return <><Loading /></>
 
 
     // Product doesn't exist

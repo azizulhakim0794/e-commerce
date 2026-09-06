@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+### the placeholder image
+
+https://placehold.co/600x400
+
 ## Getting Started
 
 First, run the development server:

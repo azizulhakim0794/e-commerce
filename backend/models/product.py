@@ -1,4 +1,4 @@
-from ..db.database import Base
+from db.database import Base
 from uuid import UUID, uuid4
 from decimal import Decimal
 from sqlalchemy import (

@@ -1,8 +1,9 @@
 from sqlalchemy import select
 from uuid import UUID
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from ..models.product import Product
-from ..schemas.product import ProductCreate
+from models.product import Product
+from schemas.product import ProductCreate
 
 
 async def create_product(db: AsyncSession, product_data: ProductCreate) -> Product:
@@ -28,6 +29,7 @@ async def create_product(db: AsyncSession, product_data: ProductCreate) -> Produ
 async def get_products(db: AsyncSession) -> list[Product]:
     result = await db.execute(select(Product))
     products = result.scalars().all()
+
     return products
 
 

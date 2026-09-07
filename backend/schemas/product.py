@@ -6,27 +6,27 @@ from decimal import Decimal
 class ProductCreate(BaseModel):
     name: str
     description: str
-    price: Decimal = Field(gt=0)
-    original_price: Decimal | None = Field(default=None, gt=0)
+    price: Decimal = Field(gt=0, le=100000)
+    original_price: Decimal | None = Field(default=None, gt=0, le=100000)
     image: str
     category: str
     rating: float = Field(ge=0, le=5)
     reviews: int = Field(ge=0)
-    stock: int = Field(ge=0)
+    badge: str
+    stock: int = Field(ge=0, le=10000)
     specs: list[str]
-    model: str
 
 
 class ProductUpdate(BaseModel):
     name: str | None = None
     description: str | None = None
-    price: Decimal | None = Field(default=None, gt=0)
-    original_price: Decimal | None = Field(default=None, gt=0)
+    price: Decimal | None = Field(default=None, gt=0, le=100000)
+    original_price: Decimal | None = Field(default=None, gt=0, le=100000)
     image: str | None = None
     category: str | None = None
-    stock: int | None = Field(default=None, ge=0)
+    badge: str | None = None
+    stock: int | None = Field(default=None, ge=0, le=10000)
     specs: list[str] | None = None
-    model: str | None = None
 
 
 class ProductResponse(BaseModel):
@@ -39,6 +39,6 @@ class ProductResponse(BaseModel):
     category: str
     rating: float = Field(ge=0, le=5)
     reviews: int = Field(ge=0)
+    badge: str
     stock: int = Field(ge=0)
     specs: list[str]
-    model: str

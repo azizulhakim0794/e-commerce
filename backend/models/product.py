@@ -32,8 +32,7 @@ class Product(Base):
 
     rating: Mapped[float] = mapped_column(Float, default=0)
     reviews: Mapped[int] = mapped_column(Integer, default=0)
+    badge: Mapped[str] = mapped_column(String)
     stock: Mapped[int] = mapped_column(Integer, default=0)
 
     specs: Mapped[list[str]] = mapped_column(JSON)
-
-    model: Mapped[str] = mapped_column(String)

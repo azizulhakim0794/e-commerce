@@ -1,20 +1,10 @@
-function Test() {
+import { productService } from "@/helper/services/product.service";
+
+export default async function Test() {
+  const products = await productService.getProducts();
+  console.log(products);
   return (
     <div className="container">
-      {/* <article className="flex gap-4 bg-dark">
-        <div>
-          <img src="https://placehold.co/600x400" alt="" />
-        </div>
-        <section>
-          <p>
-            Lorem ipsum, dolor sit amet consectetur adipisicing elit. Omnis
-            praesentium fuga aliquam rem molestiae. Aspernatur minima commodi
-            natus sed quidem consequatur modi illum, quisquam reprehenderit,
-            fugit ut ducimus, sunt blanditiis!
-          </p>
-        </section>
-      </article> */}
-
       <div className="max-w-sm rounded overflow-hidden shadow-lg dark:border-slate-800 dark:bg-slate-950/90 dark:shadow-white/10 dark:hover:shadow-2xl">
         <img
           className="w-full"
@@ -44,5 +34,3 @@ function Test() {
     </div>
   );
 }
-
-export default Test;

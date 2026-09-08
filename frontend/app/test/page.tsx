@@ -2,7 +2,7 @@ import { productService } from "@/helper/services/product.service";
 
 export default async function Test() {
   const products = await productService.getProducts();
-  console.log(products);
+  console.log(products[0]);
   return (
     <div className="container">
       <div className="max-w-sm rounded overflow-hidden shadow-lg dark:border-slate-800 dark:bg-slate-950/90 dark:shadow-white/10 dark:hover:shadow-2xl">

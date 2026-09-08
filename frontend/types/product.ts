@@ -1,8 +1,9 @@
 export interface Product {
-    id: number;
+    id: string;
     name: string;
     description: string;
     price: number;
+    original_price: number | null;
     badge:string;
     category:string;
     specs:string[]
@@ -11,8 +12,4 @@ export interface Product {
     rating: number;
     reviews: number
     
-}
-
-export interface ProductResponse {
-    products: Product[];
 }

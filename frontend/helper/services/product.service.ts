@@ -1,12 +1,11 @@
 import { Product } from "@/types";
 import api from "../api";
-import { ProductResponse } from "@/types/product";
 
 
 export const productService = {
     getProducts: async (): Promise<Product[]> => {
-        const response = await api.get<ProductResponse>("/products");
-        return response.data.products;
+        const response = await api.get<Product[]>("/products");
+        return response.data;
     },
 
     getProduct: async (id: number): Promise<Product> => {

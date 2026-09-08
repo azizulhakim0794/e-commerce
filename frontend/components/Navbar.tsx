@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Bars3Icon,
   MagnifyingGlassIcon,
@@ -16,6 +16,11 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const { cart, user, theme, toggleTheme } = useStore();
   const count = cart.reduce((total, item) => total + item.quantity, 0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-[#f7f8f5]/40 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/40">
       <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-5 lg:px-8">
@@ -66,11 +71,12 @@ export default function Navbar() {
             className="rounded-full p-2.5 text-slate-600 hover:bg-slate-200/70 dark:text-slate-300"
             aria-label="Toggle color theme"
           >
-            {theme === "light" ? (
-              <MoonIcon className="h-5 w-5" />
-            ) : (
-              <SunIcon className="h-5 w-5" />
-            )}
+            {mounted &&
+              (theme === "dark" ? (
+                <SunIcon className="h-5 w-5" />
+              ) : (
+                <MoonIcon className="h-5 w-5" />
+              ))}
           </button>
           <Link
             href="/cart"

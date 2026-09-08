@@ -16,10 +16,11 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+API_PREFIX = "/api/v1"
 
 app.include_router(
     product_router,
-    prefix="/products",
+    prefix=f"{API_PREFIX}/products",
     tags=["Products"],
 )
 

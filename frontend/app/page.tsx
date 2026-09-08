@@ -2,9 +2,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRightIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import ProductCard from "../components/ProductCard";
-import { categories, products } from "../lib/products";
+import { categories } from "../lib/products";
+import { productService } from "@/helper/services/product.service";
 
-export default function Home() {
+export default async function Home() {
+  const products = await productService.getProducts();
   return (
     <div>
       <section className="mx-auto grid max-w-7xl gap-8 px-5 pb-16 pt-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:px-8 lg:pb-24 lg:pt-16">

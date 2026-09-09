@@ -1,4 +1,5 @@
-import { Product } from "@/types";
+// import { Product } from "@/types";
+import { Product } from "@/types/product";
 import api from "../api";
 
 

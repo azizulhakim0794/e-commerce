@@ -13,3 +13,7 @@ export interface Product {
     reviews: number
     
 }
+
+export interface CartItem extends Product {
+    quantity: number;
+}

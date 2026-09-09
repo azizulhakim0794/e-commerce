@@ -7,13 +7,15 @@ export default function RegisterPage() {
   const router = useRouter();
   const { setUser } = useStore();
   const [error, setError] = useState("");
-  function submit(event: FormEvent<HTMLFormElement>) {
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const name = String(data.get("name"));
     const email = String(data.get("email"));
     const password = String(data.get("password"));
     const confirm = String(data.get("confirm"));
+
     if (!name || !email || !password)
       return setError("Please complete all required fields.");
     if (password.length < 8)
@@ -21,7 +23,8 @@ export default function RegisterPage() {
     if (password !== confirm) return setError("Passwords do not match.");
     setUser({ name, email });
     router.push("/profile");
-  }
+  };
+
   return (
     <div className="mx-auto max-w-md px-5 py-20 lg:py-28">
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-700">

@@ -1,9 +1,9 @@
 from sqlalchemy import func, select
 from typing import Annotated
-from fastapi import HTTPException, status, Depends
+from fastapi import HTTPException, status, Depends, Response
 from db.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.auth import UserCreate, UserLogin, Token
+from schemas.auth import UserCreate, UserLogin
 from core.config import settings
 from models.user import User
 from datetime import timedelta
@@ -47,7 +47,11 @@ async def create_user(db: DBSession, user: UserCreate):
     return new_user
 
 
-async def login_with_token(db: DBSession, user_data: UserLogin):
+async def login_with_token(
+    response: Response,
+    db: DBSession,
+    user_data: UserLogin,
+):
 
     result = await db.execute(
         select(User).where(func.lower(User.email) == user_data.email.lower())
@@ -76,7 +80,17 @@ async def login_with_token(db: DBSession, user_data: UserLogin):
         data={"sub": str(db_user.id)},
         expires_delta=access_token_expires,
     )
-    return Token(access_token=access_token, token_type="bearer")
+    # return Token(access_token=access_token, token_type="bearer")
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+    )
+
+    return {"message": "Login successful"}
 
 
 async def get_current_user(current_user: CurrentUser):

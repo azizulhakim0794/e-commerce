@@ -3,15 +3,14 @@ from datetime import datetime
 from sqlalchemy import String, Boolean, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 from db.database import Base
-from uuid import uuid4
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[uuid4] = mapped_column(
-        uuid4(as_uuid=True),
+    id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4,
     )
@@ -30,10 +29,10 @@ class User(Base):
         index=True,
     )
 
-    image_file: Mapped[str | None] = mapped_column(
-        String(255),
-        nullable=True,
-    )
+    # image_file: Mapped[str | None] = mapped_column(
+    #     String(255),
+    #     nullable=True,
+    # )
 
     password_hash: Mapped[str] = mapped_column(
         String(255),

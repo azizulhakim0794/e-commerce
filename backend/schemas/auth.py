@@ -8,9 +8,19 @@ class UserBase(BaseModel):
     email: EmailStr = Field(max_length=120)
 
 
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
 class UserCreate(UserBase):
     password: str = Field(min_length=8)
-    image_file: str = Field(min_length=8)
+    # image_file: str = Field(min_length=8)
 
 
 class UserPublic(BaseModel):

@@ -8,7 +8,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
     )
 
-    database_url: str
+    database_url: str = "sqlite+aiosqlite:///./ecommerce.db"
 
     secret_key: SecretStr
     algorithm: str = "HS256"

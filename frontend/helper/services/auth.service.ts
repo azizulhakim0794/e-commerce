@@ -1,19 +1,49 @@
-import { Access_Token, User } from "@/types/auth";
+import { User } from "@/types/auth";
 import api from "../api";
 
-export const productService = {
-    create_user: async (): Promise<User[]> => {
-        const response = await api.get<User[]>("/users");
-        return response.data;
+interface RegisterPayload {
+  username: string;
+  email: string;
+  password: string;
+}
+
+interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+export const authService = {
+    register: async (payload: RegisterPayload): Promise<User> => {
+        const response = await api.post<{
+            id?: string;
+            username: string;
+            email: string;
+        }>("/users", payload);
+
+        return {
+            id: response.data.id,
+            name: response.data.username,
+            username: response.data.username,
+            email: response.data.email,
+        };
     },
 
-    get_login_access_token: async (id: number): Promise<User> => {
-        const response = await api.get<any | Access_Token>(`/users/token`);
-        return response.data;
+    login: async (payload: LoginPayload): Promise<void> => {
+        await api.post("/users/token", payload);
     },
 
-    get_me: async (): Promise<User> => {
-        const response = await api.get<User>(`/users/me`);
-        return response.data;
+    getMe: async (): Promise<User> => {
+        const response = await api.get<{
+            id?: string;
+            username: string;
+            email: string;
+        }>("/users/me");
+
+        return {
+            id: response.data.id,
+            name: response.data.username,
+            username: response.data.username,
+            email: response.data.email,
+        };
     },
 };

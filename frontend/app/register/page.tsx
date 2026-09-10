@@ -1,28 +1,60 @@
 "use client";
+
 import Link from "next/link";
-import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
+
+import { authService } from "@/helper/services/auth.service";
 import { useStore } from "../../store/StoreProvider";
+
 export default function RegisterPage() {
   const router = useRouter();
   const { setUser } = useStore();
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const submit = (event: FormEvent<HTMLFormElement>) => {
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    const name = String(data.get("name"));
-    const email = String(data.get("email"));
-    const password = String(data.get("password"));
-    const confirm = String(data.get("confirm"));
+    const username = String(data.get("name") || "").trim();
+    const email = String(data.get("email") || "").trim();
+    const password = String(data.get("password") || "");
+    const confirm = String(data.get("confirm") || "");
 
-    if (!name || !email || !password)
-      return setError("Please complete all required fields.");
-    if (password.length < 8)
-      return setError("Password must be at least 8 characters.");
-    if (password !== confirm) return setError("Passwords do not match.");
-    setUser({ name, email });
-    router.push("/profile");
+    if (!username || !email || !password) {
+      setError("Please complete all required fields.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
+    if (password !== confirm) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    try {
+      setError("");
+      setIsSubmitting(true);
+
+      await authService.register({ username, email, password });
+      await authService.login({ email, password });
+      const currentUser = await authService.getMe();
+
+      setUser(currentUser);
+      router.push("/profile");
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Unable to create your account right now.";
+      setError(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -68,8 +100,11 @@ export default function RegisterPage() {
           />
         </label>
         {error && <p className="text-sm font-bold text-rose-600">{error}</p>}
-        <button className="rounded-full bg-slate-950 px-5 py-3.5 text-sm font-bold text-white hover:bg-teal-700 dark:bg-white dark:text-slate-950">
-          Create account
+        <button
+          disabled={isSubmitting}
+          className="rounded-full bg-slate-950 px-5 py-3.5 text-sm font-bold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-white dark:text-slate-950"
+        >
+          {isSubmitting ? "Creating account..." : "Create account"}
         </button>
       </form>
       <p className="mt-7 text-center text-sm text-slate-500">

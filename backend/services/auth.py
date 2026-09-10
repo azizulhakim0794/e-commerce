@@ -86,12 +86,12 @@ async def login_with_token(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=True,
+        secure=False,
         samesite="lax",
     )
 
-    return {"message": "Login successful"}
+    return {"message": "access_token saved successfully"}
 
 
-async def get_current_user(current_user: CurrentUser):
-    return current_user
+# async def get_current_user(current_user: CurrentUser):
+#     return current_user

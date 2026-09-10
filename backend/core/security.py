@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Cookie
 from fastapi.security import OAuth2PasswordBearer
 from pwdlib import PasswordHash
 from sqlalchemy import select
@@ -81,8 +81,9 @@ def verify_access_token(token: str) -> str | None:
 
 
 async def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
-    db: Annotated[AsyncSession, Depends(get_db)],
+    # token: Annotated[str, Depends(oauth2_scheme)],
+    token: str | None = Cookie(default=None),
+    db: Annotated[AsyncSession, Depends(get_db)] = None,
 ) -> User:
     user_id = verify_access_token(token)
     if user_id is None:
@@ -111,6 +112,37 @@ async def get_current_user(
             detail="User not found",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    return user
+
+
+async def get_current_user(
+    access_token: str | None = Cookie(default=None),
+    db: Annotated[AsyncSession, Depends(get_db)] = None,
+):
+    if access_token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+        )
+
+    user_id = verify_access_token(access_token)
+
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
+
+    result = await db.execute(select(User).where(User.id == user_id))
+
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+
     return user
 
 

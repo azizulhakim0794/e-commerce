@@ -1,6 +1,11 @@
 import { User } from "@/types/auth";
 import api from "../api";
 
+interface LoginResponse {
+  message: string;
+  access_token: string;
+}
+
 interface RegisterPayload {
   username: string;
   email: string;
@@ -28,8 +33,10 @@ export const authService = {
         };
     },
 
-    login: async (payload: LoginPayload): Promise<void> => {
-        await api.post("/users/token", payload);
+    login: async (payload: LoginPayload): Promise<string> => {
+        const response = await api.post<LoginResponse>("/users/token", payload);
+
+        return response.data.access_token;
     },
 
     getMe: async (): Promise<User> => {

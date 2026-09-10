@@ -88,9 +88,13 @@ async def login_with_token(
         httponly=True,
         secure=False,
         samesite="lax",
+        max_age=60 * 30,  # 30 minutes
     )
 
-    return {"message": "access_token saved successfully"}
+    return {
+        "message": "access_token saved successfully",
+        "access_token": access_token,
+    }
 
 
 # async def get_current_user(current_user: CurrentUser):

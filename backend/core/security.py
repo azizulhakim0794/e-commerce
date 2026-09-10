@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 import jwt
-from fastapi import Depends, HTTPException, status, Cookie
+from fastapi import Depends, HTTPException, status, Cookie, Header
 from fastapi.security import OAuth2PasswordBearer
 from pwdlib import PasswordHash
 from sqlalchemy import select
@@ -81,51 +81,22 @@ def verify_access_token(token: str) -> str | None:
 
 
 async def get_current_user(
-    # token: Annotated[str, Depends(oauth2_scheme)],
-    token: str | None = Cookie(default=None),
+    access_token: str | None = Cookie(default=None),
+    authorization: str | None = Header(default=None, alias="Authorization"),
     db: Annotated[AsyncSession, Depends(get_db)] = None,
 ) -> User:
-    user_id = verify_access_token(token)
-    if user_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    token = access_token
 
-    try:
-        user_id_uuid = UUID(user_id)
-    except TypeError, ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    if authorization:
+        token = authorization.replace("Bearer ", "", 1).strip()
 
-    result = await db.execute(
-        select(User).where(User.id == user_id_uuid),
-    )
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return user
-
-
-async def get_current_user(
-    access_token: str | None = Cookie(default=None),
-    db: Annotated[AsyncSession, Depends(get_db)] = None,
-):
-    if access_token is None:
+    if token is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
         )
 
-    user_id = verify_access_token(access_token)
+    user_id = verify_access_token(token)
 
     if user_id is None:
         raise HTTPException(
@@ -133,8 +104,15 @@ async def get_current_user(
             detail="Invalid or expired token",
         )
 
-    result = await db.execute(select(User).where(User.id == user_id))
+    try:
+        user_id_uuid = UUID(user_id)
+    except (TypeError, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
 
+    result = await db.execute(select(User).where(User.id == user_id_uuid))
     user = result.scalar_one_or_none()
 
     if user is None:

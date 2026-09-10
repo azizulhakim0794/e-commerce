@@ -3,7 +3,14 @@
 import { authService } from "@/helper/services/auth.service";
 import { User } from "@/types/auth";
 import { CartItem, Product } from "@/types/product";
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 interface StoreContextValue {
   cart: CartItem[];
@@ -20,42 +27,48 @@ interface StoreContextValue {
 const StoreContext = createContext<StoreContextValue | null>(null);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    if (typeof window === "undefined") return [];
-    const saved = window.localStorage.getItem("northstar-cart");
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window === "undefined") return null;
-    const saved = window.localStorage.getItem("northstar-user");
-    return saved ? JSON.parse(saved) : null;
-  });
-
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
-    if (typeof window === "undefined") return "light";
-    return (
-      (window.localStorage.getItem("northstar-theme") as
-        "light" | "dark" | null) ?? "light"
-    );
-  });
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
+    const savedCart = window.localStorage.getItem("northstar-cart");
+    const savedUser = window.localStorage.getItem("northstar-user");
+    const savedTheme = window.localStorage.getItem("northstar-theme");
+
+    setCart(savedCart ? JSON.parse(savedCart) : []);
+    setUser(savedUser ? JSON.parse(savedUser) : null);
+    setTheme(savedTheme === "dark" ? "dark" : "light");
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) return;
     window.localStorage.setItem("northstar-cart", JSON.stringify(cart));
-  }, [cart]);
+  }, [cart, isHydrated]);
 
   useEffect(() => {
+    if (!isHydrated) return;
+
     if (user)
       window.localStorage.setItem("northstar-user", JSON.stringify(user));
     else window.localStorage.removeItem("northstar-user");
-  }, [user]);
+  }, [user, isHydrated]);
 
   useEffect(() => {
+    if (!isHydrated) return;
+
     document.documentElement.classList.toggle("dark", theme === "dark");
     window.localStorage.setItem("northstar-theme", theme);
-  }, [theme]);
+  }, [theme, isHydrated]);
+
+  const hasCheckedSession = useRef(false);
 
   useEffect(() => {
+    if (typeof window === "undefined" || hasCheckedSession.current) return;
+
+    hasCheckedSession.current = true;
     void getMe();
   }, []);
 
@@ -64,7 +77,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const currentUser = await authService.getMe();
       setUser(currentUser);
     } catch {
-      // Ignore unauthenticated state for guests.
+      setUser(null);
     }
   };
 

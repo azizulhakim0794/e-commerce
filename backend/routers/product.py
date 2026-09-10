@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Query, Depends
+from fastapi import APIRouter, Depends
 from schemas.product import ProductResponse, ProductCreate
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated

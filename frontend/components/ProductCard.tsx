@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { CheckIcon, StarIcon } from "@heroicons/react/24/solid";
-import { Product } from "../types";
+import { Product } from "@/types/product";
 import { useStore } from "../store/StoreProvider";
 
 export default function ProductCard({ product }: { product: Product }) {

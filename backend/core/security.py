@@ -1,0 +1,127 @@
+from datetime import UTC, datetime, timedelta
+from typing import Annotated
+
+import jwt
+from fastapi import Depends, HTTPException, status, Cookie, Header
+from fastapi.security import OAuth2PasswordBearer
+from pwdlib import PasswordHash
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from uuid import UUID
+from models.user import User
+
+from core.config import settings
+
+from db.database import get_db
+
+import hashlib
+import secrets
+
+password_hash = PasswordHash.recommended()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/users/token")
+
+
+def hash_password(password: str) -> str:
+    return password_hash.hash(password)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return password_hash.verify(plain_password, hashed_password)
+
+
+def generate_reset_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+def hash_reset_token(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+    """Create a JWT access token."""
+
+    # data_payload  = {
+    #     data={"sub": str(user.id)}
+    #     expires_delta ={ "exp": datetime.now(timezone.utc) + timedelta(minutes=15)},
+    # }
+
+    to_encode = data.copy()
+    # "Take the data provided by the caller, make a separate dictionary, and add "
+    # "JWT-specific fields such as exp without modifying the caller's original dictionary."
+
+    if expires_delta:
+        expire = datetime.now(UTC) + expires_delta
+    else:
+        expire = datetime.now(UTC) + timedelta(
+            minutes=settings.access_token_expire_minutes,
+        )
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(
+        to_encode,
+        settings.secret_key.get_secret_value(),
+        algorithm=settings.algorithm,
+    )
+    return encoded_jwt
+
+
+def verify_access_token(token: str) -> str | None:
+    """Verify a JWT access token and return the subject (user id) if valid."""
+    try:
+        payload = jwt.decode(
+            token,
+            settings.secret_key.get_secret_value(),
+            algorithms=[settings.algorithm],
+            options={"require": ["exp", "sub"]},
+        )
+    except jwt.InvalidTokenError:
+        return None
+    else:
+        return payload.get("sub")
+
+
+async def get_current_user(
+    access_token: str | None = Cookie(default=None),
+    authorization: str | None = Header(default=None, alias="Authorization"),
+    db: Annotated[AsyncSession, Depends(get_db)] = None,
+) -> User:
+    token = access_token
+
+    if authorization:
+        token = authorization.replace("Bearer ", "", 1).strip()
+
+    if token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+        )
+
+    user_id = verify_access_token(token)
+
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
+
+    try:
+        user_id_uuid = UUID(user_id)
+    except (TypeError, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
+
+    result = await db.execute(select(User).where(User.id == user_id_uuid))
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+
+    return user
+
+
+CurrentUser = Annotated[User, Depends(get_current_user)]

@@ -117,7 +117,7 @@ export default function ProductDetails() {
               Details
             </h2>
             <ul className="mt-4 grid gap-3 text-sm text-slate-600 sm:grid-cols-2 dark:text-slate-300">
-              {product.specs.map((spec) => (
+              {product.specs.map((spec: string) => (
                 <li key={spec} className="flex items-center gap-2">
                   <CheckIcon className="h-4 w-4 text-teal-600" />
                   {spec}

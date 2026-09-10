@@ -12,7 +12,6 @@ from core.security import (
     hash_password,
     verify_password,
     create_access_token,
-    CurrentUser,
 )
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
@@ -88,13 +87,24 @@ async def login_with_token(
         httponly=True,
         secure=False,
         samesite="lax",
-        max_age=60 * 30,  # 30 minutes
+        max_age=settings.access_token_expire_minutes,
     )
 
     return {
         "message": "access_token saved successfully",
-        "access_token": access_token,
     }
+
+
+async def logout(response: Response):
+
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        secure=False,  # local development
+        samesite="lax",
+    )
+
+    return {"message": "Logged out successfully"}
 
 
 # async def get_current_user(current_user: CurrentUser):

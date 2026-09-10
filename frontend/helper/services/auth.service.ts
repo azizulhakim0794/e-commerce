@@ -1,10 +1,9 @@
 import { User } from "@/types/auth";
 import api from "../api";
 
-interface LoginResponse {
-  message: string;
-  access_token: string;
-}
+// interface LoginResponse {
+//   message: string;
+// }
 
 interface RegisterPayload {
   username: string;
@@ -34,9 +33,9 @@ export const authService = {
     },
 
     login: async (payload: LoginPayload): Promise<string> => {
-        const response = await api.post<LoginResponse>("/users/token", payload);
+        const response = await api.post<string>("/users/token", payload);
 
-        return response.data.access_token;
+        return response.data;
     },
 
     getMe: async (): Promise<User> => {
@@ -52,5 +51,10 @@ export const authService = {
             username: response.data.username,
             email: response.data.email,
         };
+    },
+
+    logout: async (): Promise<string> => {
+        const response = await api.post<string>("/users/logout");
+        return response.data;
     },
 };

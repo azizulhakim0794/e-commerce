@@ -25,3 +25,8 @@ async def login_with_token(response: Response, db: DBSession, user_data: UserLog
 @router.get("/me", response_model=UserPrivate)
 async def get_current_user(current_user: CurrentUser):
     return current_user
+
+
+@router.post("/logout", response_model=LoginResponse)
+async def logout(response: Response):
+    return await auth_service.logout(response)

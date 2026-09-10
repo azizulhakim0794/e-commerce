@@ -2,9 +2,22 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useStore } from "../../store/StoreProvider";
+import { authService } from "@/helper/services/auth.service";
+import { useApi } from "@/hooks/useApi";
 export default function ProfilePage() {
   const router = useRouter();
   const { user, setUser } = useStore();
+  const { handleRequest, isLoading } = useApi();
+
+  const handle_click_logout = async () => {
+    const result = await handleRequest(authService.logout());
+
+    if (result.success) {
+      setUser(null);
+      router.push("/");
+    }
+  };
+
   if (!user)
     return (
       <div className="mx-auto max-w-xl px-5 py-32 text-center">
@@ -25,10 +38,7 @@ export default function ProfilePage() {
       <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
         <h1 className="text-4xl font-black">Hello, {user.name}.</h1>
         <button
-          onClick={() => {
-            setUser(null);
-            router.push("/");
-          }}
+          onClick={() => handle_click_logout()}
           className="text-sm font-bold text-rose-600"
         >
           Sign out

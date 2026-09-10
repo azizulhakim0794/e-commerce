@@ -19,7 +19,7 @@ interface LoginPayload {
 export const authService = {
     register: async (payload: RegisterPayload): Promise<User> => {
         const response = await api.post<{
-            id?: string;
+            id: string;
             username: string;
             email: string;
         }>("/users", payload);
@@ -40,7 +40,7 @@ export const authService = {
 
     getMe: async (): Promise<User> => {
         const response = await api.get<{
-            id?: string;
+            id: string;
             username: string;
             email: string;
         }>("/users/me");

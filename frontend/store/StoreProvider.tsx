@@ -1,6 +1,7 @@
 "use client";
 
 import { authService } from "@/helper/services/auth.service";
+import { useApi } from "@/hooks/useApi";
 import { User } from "@/types/auth";
 import { CartItem, Product } from "@/types/product";
 import {
@@ -16,6 +17,7 @@ interface StoreContextValue {
   cart: CartItem[];
   user: User | null;
   theme: "light" | "dark";
+  isSessionLoading: boolean;
   addToCart: (product: Product, quantity?: number) => void;
   updateQuantity: (id: string | number, quantity: number) => void;
   removeFromCart: (id: string | number) => void;
@@ -31,6 +33,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [isHydrated, setIsHydrated] = useState(false);
+  const { handleRequest, isLoading } = useApi();
 
   useEffect(() => {
     const savedCart = window.localStorage.getItem("northstar-cart");
@@ -73,12 +76,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const getMe = async () => {
-    try {
-      const currentUser = await authService.getMe();
-      setUser(currentUser);
-    } catch {
-      setUser(null);
+    const response = await handleRequest(authService.getMe());
+
+    if (response.success && response.data) {
+      setUser(response.data);
+      return;
     }
+
+    setUser(null);
   };
 
   const value = useMemo(
@@ -86,6 +91,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       cart,
       user,
       theme,
+      isSessionLoading: isLoading,
       addToCart: (product: Product, quantity = 1) =>
         setCart((current) => {
           const existing = current.find((item) => item.id === product.id);
@@ -118,7 +124,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       toggleTheme: () =>
         setTheme((current) => (current === "light" ? "dark" : "light")),
     }),
-    [cart, user, theme],
+    [cart, user, theme, isLoading],
   );
 
   return (

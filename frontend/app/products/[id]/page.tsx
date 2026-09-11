@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeftIcon,
   CheckIcon,
@@ -10,14 +10,58 @@ import {
   PlusIcon,
   StarIcon,
 } from "@heroicons/react/24/outline";
-import { getProduct } from "../../../lib/products";
+// import { getProduct } from "../../../lib/products";
 import { useStore } from "../../../store/StoreProvider";
+import { product_service } from "@/helper/services/product.service";
+import { useApi } from "@/hooks/useApi";
+import { Product } from "@/types";
 
 export default function ProductDetails() {
   const params = useParams<{ id: string }>();
-  const product = getProduct(Number(params.id));
+  const [product, setProduct] = useState<Product | null>(null);
+
+  const { handleRequest, isLoading } = useApi();
+
+  useEffect(() => {
+    const loadProduct = async () => {
+      const result = await handleRequest(
+        product_service.get_product,
+        params.id,
+      );
+
+      if (result.success && result.data) {
+        setProduct(result.data);
+      }
+    };
+
+    if (params.id) {
+      loadProduct();
+    }
+  }, [params.id]);
+
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useStore();
+
+  const handle_product_into_cart = async (
+    quantity: number,
+    product: Product,
+  ) => {
+    const loadProduct = async () => {
+      const result = await handleRequest(
+        product_service.save_product_into_cart,
+        { quantity: quantity, product_id: product.id },
+      );
+
+      if (result.success && result.data) {
+        setProduct(result.data);
+      }
+    };
+
+    if (params.id) {
+      loadProduct();
+    }
+  };
+
   if (!product)
     return (
       <div className="mx-auto max-w-7xl px-5 py-32 text-center">
@@ -98,12 +142,18 @@ export default function ProductDetails() {
                 <PlusIcon className="h-4 w-4" />
               </button>
             </div>
-            <button
+            {/* <button
               onClick={() => addToCart(product, quantity)}
+              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-bold text-white hover:bg-teal-700 dark:bg-white dark:text-slate-950"
+            > */}
+
+            <button
+              onClick={() => handle_product_into_cart(quantity, product)}
               className="flex flex-1 items-center justify-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-bold text-white hover:bg-teal-700 dark:bg-white dark:text-slate-950"
             >
               <CheckIcon className="h-5 w-5" /> Add to cart
             </button>
+
             <Link
               href="/checkout"
               onClick={() => addToCart(product, quantity)}

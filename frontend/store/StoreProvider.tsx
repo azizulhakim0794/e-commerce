@@ -37,11 +37,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const savedCart = window.localStorage.getItem("northstar-cart");
-    const savedUser = window.localStorage.getItem("northstar-user");
     const savedTheme = window.localStorage.getItem("northstar-theme");
 
     setCart(savedCart ? JSON.parse(savedCart) : []);
-    setUser(savedUser ? JSON.parse(savedUser) : null);
     setTheme(savedTheme === "dark" ? "dark" : "light");
     setIsHydrated(true);
   }, []);
@@ -50,14 +48,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (!isHydrated) return;
     window.localStorage.setItem("northstar-cart", JSON.stringify(cart));
   }, [cart, isHydrated]);
-
-  useEffect(() => {
-    if (!isHydrated) return;
-
-    if (user)
-      window.localStorage.setItem("northstar-user", JSON.stringify(user));
-    else window.localStorage.removeItem("northstar-user");
-  }, [user, isHydrated]);
 
   useEffect(() => {
     if (!isHydrated) return;
@@ -94,20 +84,29 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       isSessionLoading: isLoading,
       addToCart: (product: Product, quantity = 1) =>
         setCart((current) => {
-          const existing = current.find((item) => item.id === product.id);
-          return existing
-            ? current.map((item) =>
-                item.id === product.id
-                  ? {
-                      ...item,
-                      quantity: Math.min(
-                        item.quantity + quantity,
-                        product.stock,
-                      ),
-                    }
-                  : item,
-              )
-            : [...current, { ...product, quantity }];
+          const existing = current.find(
+            (item) => item.product.id === product.id,
+          );
+
+          if (existing) {
+            return current.map((item) =>
+              item.product.id === product.id
+                ? {
+                    ...item,
+                    quantity: Math.min(item.quantity + quantity, product.stock),
+                  }
+                : item,
+            );
+          }
+
+          return [
+            ...current,
+            {
+              id: crypto.randomUUID(),
+              product,
+              quantity: Math.min(quantity, product.stock),
+            },
+          ];
         }),
       updateQuantity: (id: string | number, quantity: number) =>
         setCart((current) =>

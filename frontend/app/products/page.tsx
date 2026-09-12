@@ -1,30 +1,49 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FunnelIcon,
   MagnifyingGlassIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import ProductCard from "../../components/ProductCard";
-import { categories, products } from "../../lib/products";
+import { categories } from "../../lib/products";
+import { Product } from "@/types";
+import { useApi } from "@/hooks/useApi";
+import { product_service } from "@/helper/services/product.service";
 
 export default function Products() {
   const [query, setQuery] = useState("");
+  const [products, setProducts] = useState<Product[]>();
+  const { handleRequest, isLoading } = useApi();
   const [category, setCategory] = useState(() =>
     typeof window === "undefined"
       ? "All"
       : (new URLSearchParams(window.location.search).get("category") ?? "All"),
   );
+  useEffect(() => {}, []);
+
+  useEffect(() => {
+    const loadProduct = async () => {
+      const result = await handleRequest(product_service.get_products);
+
+      if (result.success && result.data) {
+        setProducts(result.data);
+      }
+    };
+
+    loadProduct();
+  }, []);
   const [sort, setSort] = useState("default");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filtered = useMemo(() => {
-    const result = products.filter(
+    const result = (products ?? []).filter(
       (product) =>
         (category === "All" || product.category === category) &&
         `${product.name} ${product.description} ${product.category}`
           .toLowerCase()
           .includes(query.toLowerCase()),
     );
+
     return [...result].sort((a, b) =>
       sort === "low"
         ? a.price - b.price
@@ -34,7 +53,7 @@ export default function Products() {
             ? b.rating - a.rating
             : 0,
     );
-  }, [category, query, sort]);
+  }, [category, products, query, sort]);
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-16">
       <div className="flex flex-wrap items-end justify-between gap-5">

@@ -1,6 +1,8 @@
 from db.database import Base
 from uuid import UUID, uuid4
 from decimal import Decimal
+
+# from models.cart import CartItem
 from sqlalchemy import (
     DateTime,
     ForeignKey,
@@ -11,7 +13,7 @@ from sqlalchemy import (
     Integer,
     Float,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class Product(Base):
@@ -36,3 +38,5 @@ class Product(Base):
     stock: Mapped[int] = mapped_column(Integer, default=0)
 
     specs: Mapped[list[str]] = mapped_column(JSON)
+
+    cart_items: Mapped[list["CartItem"]] = relationship(back_populates="product")

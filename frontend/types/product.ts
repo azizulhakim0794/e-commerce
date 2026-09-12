@@ -1,5 +1,5 @@
 export interface Product {
-    id: string | number;
+    id: string;
     name: string;
     description: string;
     price: number;
@@ -7,13 +7,19 @@ export interface Product {
     original_price?: number | null;
     badge?: string;
     category: string;
-    specs: string[];
+    specs?: string[];
     stock: number;
-    image: string;
+    image?: string | null;
     rating: number;
     reviews: number;
 }
 
-export interface CartItem extends Product {
-    quantity: number;
+// export interface CartItem extends Product {
+//     quantity: number;
+// }
+
+export interface CartItem {
+  id: string;          // CartItem ID from backend
+  product: Product;    // Product information
+  quantity: number;    // How many the user wants
 }

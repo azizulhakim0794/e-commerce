@@ -1,0 +1,54 @@
+from db.database import Base
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from uuid import UUID, uuid4
+from sqlalchemy import ForeignKey, DateTime, func, UniqueConstraint
+from datetime import datetime
+from models.product import Product
+
+
+class Cart(Base):
+    __tablename__ = "carts"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id"), nullable=False, unique=True
+    )
+
+    items: Mapped[list["CartItem"]] = relationship(
+        back_populates="cart", cascade="all, delete-orphan"
+    )
+
+
+class CartItem(Base):
+    __tablename__ = "cart_items"
+
+    __table_args__ = (
+        UniqueConstraint("cart_id", "product_id", name="uq_cart_product"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+
+    cart_id: Mapped[UUID] = mapped_column(
+        ForeignKey("carts.id", ondelete="CASCADE"), nullable=False
+    )
+
+    product_id: Mapped[UUID] = mapped_column(ForeignKey("products.id"), nullable=False)
+
+    quantity: Mapped[int] = mapped_column(nullable=False, default=1)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    cart: Mapped["Cart"] = relationship(back_populates="items")
+
+    # Product relationship
+    product: Mapped["Product"] = relationship(back_populates="cart_items")

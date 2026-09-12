@@ -77,6 +77,15 @@ export const PUT = async <T>(
     return response.data;
 };
 
+export const PATCH = async <T>(
+  url: string,
+  data?: unknown,
+  config?: AxiosRequestConfig
+): Promise<T> => {
+  const response = await api.patch<T>(url, data, config);
+  return response.data;
+};
+
 export const DELETE = async <T>(
     url: string,
     config?: AxiosRequestConfig

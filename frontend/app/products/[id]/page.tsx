@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   ArrowLeftIcon,
   CheckIcon,
@@ -10,14 +10,57 @@ import {
   PlusIcon,
   StarIcon,
 } from "@heroicons/react/24/outline";
-import { getProduct } from "../../../lib/products";
+// import { getProduct } from "../../../lib/products";
 import { useStore } from "../../../store/StoreProvider";
+import { product_service } from "@/helper/services/product.service";
+import { useApi } from "@/hooks/useApi";
+import { Product } from "@/types";
 
 export default function ProductDetails() {
   const params = useParams<{ id: string }>();
-  const product = getProduct(Number(params.id));
+  const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useStore();
+  const { handleRequest, isLoading } = useApi();
+  const router = useRouter();
+
+  useEffect(() => {
+    const loadProduct = async () => {
+      const result = await handleRequest(
+        product_service.get_product,
+        params.id,
+      );
+
+      if (result.success && result.data) {
+        setProduct(result.data);
+      }
+    };
+
+    if (params.id) {
+      loadProduct();
+    }
+  }, [params.id]);
+
+  const handle_product_into_cart = async (
+    quantity: number,
+    product: Product,
+  ) => {
+    const loadProduct = async () => {
+      const result = await handleRequest(
+        product_service.save_product_into_cart,
+        { quantity: quantity, product_id: product.id },
+      );
+
+      if (result.success && result.data) {
+        router.push("/cart");
+      }
+    };
+
+    if (params.id) {
+      loadProduct();
+    }
+  };
+
   if (!product)
     return (
       <div className="mx-auto max-w-7xl px-5 py-32 text-center">
@@ -40,13 +83,19 @@ export default function ProductDetails() {
       </Link>
       <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-20">
         <div className="relative aspect-square overflow-hidden rounded-3xl bg-slate-100 dark:bg-slate-800">
-          <Image
-            src={product.image}
-            alt={product.name}
-            fill
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            className="object-cover"
-          />
+          {product.image ? (
+            <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-slate-200 text-sm font-bold uppercase tracking-[0.2em] text-slate-500 dark:bg-slate-700 dark:text-slate-300">
+              No image
+            </div>
+          )}
         </div>
         <div className="flex flex-col justify-center">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-700 dark:text-teal-400">
@@ -98,12 +147,18 @@ export default function ProductDetails() {
                 <PlusIcon className="h-4 w-4" />
               </button>
             </div>
-            <button
+            {/* <button
               onClick={() => addToCart(product, quantity)}
+              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-bold text-white hover:bg-teal-700 dark:bg-white dark:text-slate-950"
+            > */}
+
+            <button
+              onClick={() => handle_product_into_cart(quantity, product)}
               className="flex flex-1 items-center justify-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-bold text-white hover:bg-teal-700 dark:bg-white dark:text-slate-950"
             >
               <CheckIcon className="h-5 w-5" /> Add to cart
             </button>
+
             <Link
               href="/checkout"
               onClick={() => addToCart(product, quantity)}
@@ -117,7 +172,7 @@ export default function ProductDetails() {
               Details
             </h2>
             <ul className="mt-4 grid gap-3 text-sm text-slate-600 sm:grid-cols-2 dark:text-slate-300">
-              {product.specs.map((spec: string) => (
+              {(product.specs ?? []).map((spec: string) => (
                 <li key={spec} className="flex items-center gap-2">
                   <CheckIcon className="h-4 w-4 text-teal-600" />
                   {spec}

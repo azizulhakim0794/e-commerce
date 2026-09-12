@@ -3,14 +3,72 @@ import Link from "next/link";
 import Image from "next/image";
 import { MinusIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useStore } from "../../store/StoreProvider";
+import { useEffect, useState } from "react";
+import { useApi } from "@/hooks/useApi";
+import { product_service } from "@/helper/services/product.service";
+import { CartItem } from "@/types";
+
+type CartResponse = {
+  id: string;
+  user_id: string;
+  items: CartItem[];
+};
 
 export default function CartPage() {
   const { cart, updateQuantity, removeFromCart } = useStore();
-  const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+  const [cartProducts, setCartProducts] = useState<CartResponse[] | null>(null);
+  const { handleRequest } = useApi();
+  const cartItems = cartProducts?.[0]?.items ?? [];
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
     0,
   );
   const shipping = subtotal >= 75 || subtotal === 0 ? 0 : 8;
+
+  const loadProduct = async () => {
+    const result = await handleRequest(product_service.get_cart_product);
+
+    if (result.success && Array.isArray(result.data)) {
+      setCartProducts(result.data);
+    }
+  };
+  useEffect(() => {
+    loadProduct();
+  }, []);
+
+  const hanldeRemoveProductFromCart = async (cart_id: string) => {
+    const result = await handleRequest(
+      product_service.remove_cart_product,
+      cart_id,
+    );
+
+    if (result.success) {
+      loadProduct();
+    }
+  };
+
+  const handleCartUpdate = async (cart_id: string, quantity: number) => {
+    const result = await handleRequest(
+      product_service.update_cart_products_quantity,
+      { quantity, cart_id },
+    );
+    if (result.success) {
+      loadProduct();
+    }
+  };
+
+  const handleUpdateCartsProduct = async (
+    cart_id: string,
+    quantity: number,
+    action_type: "add" | "remove",
+  ) => {
+    if (action_type == "add") {
+      handleCartUpdate(cart_id, quantity);
+    } else {
+      handleCartUpdate(cart_id, quantity);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-16">
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-700">
@@ -19,7 +77,7 @@ export default function CartPage() {
       <h1 className="mt-2 text-4xl font-black tracking-tight">
         Ready when you are.
       </h1>
-      {cart.length === 0 ? (
+      {cartItems.length === 0 ? (
         <div className="py-24 text-center">
           <p className="text-xl font-bold">Your cart is empty.</p>
           <p className="mt-2 text-sm text-slate-500">
@@ -35,32 +93,46 @@ export default function CartPage() {
       ) : (
         <div className="mt-10 grid gap-12 lg:grid-cols-[1fr_360px]">
           <div className="divide-y divide-slate-200 dark:divide-slate-800">
-            {cart.map((item) => (
+            {cartItems.map((item) => (
               <div key={item.id} className="flex gap-4 py-6 first:pt-0">
                 <div className="relative h-28 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-100">
-                  <Image
-                    src={item.image}
-                    alt={item.name}
-                    fill
-                    sizes="96px"
-                    className="object-cover"
-                  />
+                  {item.product.image ? (
+                    <Image
+                      src={item.product.image}
+                      alt={item.product.name}
+                      fill
+                      sizes="96px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-slate-200 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                      No image
+                    </div>
+                  )}
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col justify-between">
                   <div className="flex justify-between gap-3">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-wider text-teal-700">
-                        {item.category}
+                        {item.product.category}
                       </p>
-                      <h2 className="mt-1 truncate font-bold">{item.name}</h2>
+                      <h2 className="mt-1 truncate font-bold">
+                        {item.product.name}
+                      </h2>
                     </div>
-                    <p className="font-bold">${item.price * item.quantity}</p>
+                    <p className="font-bold">
+                      ${item.product.price * item.quantity}
+                    </p>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center rounded-full border border-slate-300 dark:border-slate-700">
                       <button
                         onClick={() =>
-                          updateQuantity(item.id, item.quantity - 1)
+                          handleUpdateCartsProduct(
+                            item.id,
+                            item.quantity - 1,
+                            "remove",
+                          )
                         }
                         className="p-2"
                         aria-label="Decrease quantity"
@@ -72,7 +144,11 @@ export default function CartPage() {
                       </span>
                       <button
                         onClick={() =>
-                          updateQuantity(item.id, item.quantity + 1)
+                          handleUpdateCartsProduct(
+                            item.id,
+                            item.quantity + 1,
+                            "add",
+                          )
                         }
                         className="p-2"
                         aria-label="Increase quantity"
@@ -81,7 +157,7 @@ export default function CartPage() {
                       </button>
                     </div>
                     <button
-                      onClick={() => removeFromCart(item.id)}
+                      onClick={() => hanldeRemoveProductFromCart(item.id)}
                       className="flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-rose-600"
                     >
                       <TrashIcon className="h-4 w-4" /> Remove

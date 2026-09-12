@@ -42,3 +42,5 @@ class ProductResponse(BaseModel):
     badge: str
     stock: int = Field(ge=0)
     specs: list[str]
+
+    model_config = {"from_attributes": True}

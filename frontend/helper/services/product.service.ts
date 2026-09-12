@@ -1,4 +1,4 @@
-import { Product } from "@/types";
+import { Cart, Product } from "@/types";
 import api from "../api";
 
 
@@ -17,6 +17,11 @@ export const product_service = {
         const response = await api.post<any>(`/cart`, data);
         return response.data;
     },
+
+    get_cart_product: async () => {
+        const response = await api.get<Cart>("/cart")
+        return response.data
+    }
 
     // createProduct: async (
     //     data: Partial<Product>

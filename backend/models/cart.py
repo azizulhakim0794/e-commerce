@@ -3,6 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from uuid import UUID, uuid4
 from sqlalchemy import ForeignKey, DateTime, func, UniqueConstraint
 from datetime import datetime
+from models.product import Product
 
 
 class Cart(Base):
@@ -28,7 +29,9 @@ class CartItem(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
 
-    cart_id: Mapped[UUID] = mapped_column(ForeignKey("carts.id"), nullable=False)
+    cart_id: Mapped[UUID] = mapped_column(
+        ForeignKey("carts.id", ondelete="CASCADE"), nullable=False
+    )
 
     product_id: Mapped[UUID] = mapped_column(ForeignKey("products.id"), nullable=False)
 
@@ -46,3 +49,6 @@ class CartItem(Base):
     )
 
     cart: Mapped["Cart"] = relationship(back_populates="items")
+
+    # Product relationship
+    product: Mapped["Product"] = relationship(back_populates="product")

@@ -52,6 +52,6 @@ app.include_router(
 )
 
 
-@app.get("/")
-async def root():
-    return {"message": "Hello, FastAPI!"}
+# @app.get("/")
+# async def root():
+#     return {"message": "Hello, FastAPI!"}

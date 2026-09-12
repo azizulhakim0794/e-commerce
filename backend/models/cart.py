@@ -51,4 +51,4 @@ class CartItem(Base):
     cart: Mapped["Cart"] = relationship(back_populates="items")
 
     # Product relationship
-    product: Mapped["Product"] = relationship(back_populates="product")
+    product: Mapped["Product"] = relationship(back_populates="cart_items")

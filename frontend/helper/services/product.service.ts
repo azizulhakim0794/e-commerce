@@ -1,4 +1,4 @@
-import { Cart, Product } from "@/types";
+import { CartItem, Product } from "@/types";
 import api from "../api";
 
 
@@ -19,9 +19,20 @@ export const product_service = {
     },
 
     get_cart_product: async () => {
-        const response = await api.get<Cart>("/cart")
+        const response = await api.get<CartItem>("/cart")
+        return response.data
+    },
+
+    update_cart_products_quantity: async (data:{quantity:number,cart_id:string}) => {
+        const response = await api.patch<any>(`/cart`,data)
+        return response.data
+    },
+
+    remove_cart_product: async (cart_id:string) => {
+        const response = await api.delete<any>(`/cart/${cart_id}`)
         return response.data
     }
+
 
     // createProduct: async (
     //     data: Partial<Product>

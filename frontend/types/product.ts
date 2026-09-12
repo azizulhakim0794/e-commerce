@@ -14,11 +14,11 @@ export interface Product {
     reviews: number;
 }
 
-export interface CartItem extends Product {
-    quantity: number;
-}
+// export interface CartItem extends Product {
+//     quantity: number;
+// }
 
-export interface Cart {
+export interface CartItem {
   id: string;          // CartItem ID from backend
   product: Product;    // Product information
   quantity: number;    // How many the user wants

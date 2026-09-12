@@ -13,12 +13,10 @@ from core.security import CurrentUser
 DBSesstion = Annotated[AsyncSession, Depends(get_db)]
 
 
-async def get_cart_products(
-    db: DBSesstion, current_user: CurrentUser
-) -> list[Cart]:
+async def get_cart_products(db: DBSesstion, current_user: CurrentUser) -> list[Cart]:
     result = await db.execute(
         select(Cart)
-        .options(selectinload(Cart.items))
+        .options(selectinload(Cart.items).selectinload(CartItem.product))
         .where(Cart.user_id == current_user.id)
     )
 
@@ -76,19 +74,21 @@ async def save_product_into_cart(
     await db.refresh(cart_item)
 
     result = await db.execute(
-        select(Cart).options(selectinload(Cart.items)).where(Cart.id == cart.id)
+        select(Cart)
+        .options(selectinload(Cart.items).selectinload(CartItem.product))
+        .where(Cart.id == cart.id)
     )
 
     return result.scalar_one()
 
 
 async def update_cart_item_quantity(
-    db: DBSesstion, current_user: CurrentUser, cart_id: UUID, quantity: int
+    db: DBSesstion, current_user: CurrentUser, cart_data: CartItemUpdate
 ) -> Cart:
     result = await db.execute(
         select(CartItem)
         .join(Cart)
-        .where(CartItem.id == cart_id, Cart.user_id == current_user.id)
+        .where(CartItem.id == cart_data.cart_id, Cart.user_id == current_user.id)
     )
 
     cart_item = result.scalar_one_or_none()
@@ -98,14 +98,16 @@ async def update_cart_item_quantity(
             status_code=status.HTTP_404_NOT_FOUND, detail="Cart item not found"
         )
 
-    cart_item.quantity = quantity
+    cart_item.quantity = cart_data.quantity
 
     db.add(cart_item)
     await db.commit()
     await db.refresh(cart_item)
 
     result = await db.execute(
-        select(Cart).options(selectinload(Cart.items)).where(Cart.id == cart_item.cart_id)
+        select(Cart)
+        .options(selectinload(Cart.items).selectinload(CartItem.product))
+        .where(Cart.id == cart_item.cart_id)
     )
 
     return result.scalar_one()

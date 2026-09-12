@@ -25,7 +25,7 @@ async def get_cart_products(db: DBSession, current_user: CurrentUser):
     return await cart_service.get_cart_products(db, current_user)
 
 
-@router.patch("/{cart_id}", response_model=CartResponse)
+@router.patch("", response_model=CartResponse)
 async def update_cart_item_quantity(
     db: DBSession, current_user: CurrentUser, cart_data: CartItemUpdate
 ):

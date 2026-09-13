@@ -8,6 +8,7 @@ from db.database import Base, engine
 from routers.product import router as product_router
 from routers.auth import router as auth_router
 from routers.cart import router as cart_router
+from routers.address import router as address_router
 
 
 @asynccontextmanager
@@ -49,6 +50,12 @@ app.include_router(
     cart_router,
     prefix=f"{API_PREFIX}/cart",
     tags=["Carts"],
+)
+
+app.include_router(
+    address_router,
+    prefix=f"{API_PREFIX}/address",
+    tags=["Addresses"],
 )
 
 

@@ -8,7 +8,7 @@ import { product_service } from "@/helper/services/product.service";
 import { useApi } from "@/hooks/useApi";
 
 export default function ProductCard({ product }: { product: Product }) {
-  const { addToCart } = useStore();
+  // const { addToCart } = useStore();
   const { handleRequest } = useApi();
 
   const handleCartUpdate = async (product_id: string) => {

@@ -3,19 +3,19 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import ForeignKey, String, DateTime, func
 from datetime import datetime
 
-from uuid import UUID
+from uuid import UUID, uuid4
 
 
 class Address(Base):
     __tablename__ = "addresses"
 
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=UUID)
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     user_id: Mapped[UUID] = mapped_column(
         ForeignKey("users.id"), nullable=False, unique=True
     )
     full_name: Mapped[str] = mapped_column(String)
     phone_number: Mapped[str] = mapped_column(String)
-    address_Type: Mapped[str] = mapped_column(String)
+    address_type: Mapped[str] = mapped_column(String)
     address_line_1: Mapped[str] = mapped_column(String)
     address_line_2: Mapped[str] = mapped_column(String)
     city: Mapped[str] = mapped_column(String)

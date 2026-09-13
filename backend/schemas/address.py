@@ -5,7 +5,7 @@ from uuid import UUID
 class AddressBase(BaseModel):
     full_name: str
     phone_number: str
-    address_Type: str
+    address_type: str
     address_line_1: str
     address_line_2: str
     city: str

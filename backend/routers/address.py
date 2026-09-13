@@ -32,5 +32,5 @@ async def update_address(
 
 
 @router.delete("", status_code=status.HTTP_204_NO_CONTENT)
-async def update_address(db: DBSession, current_user: CurrentUser, address_id: UUID):
-    return address_service.update_address(db, current_user, address_id)
+async def delete_address(db: DBSession, current_user: CurrentUser, address_id: UUID):
+    return address_service.delete_address(db, current_user, address_id)

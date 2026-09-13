@@ -5,7 +5,7 @@ from db.database import get_db
 from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
-from schemas.address import AddressCreate, AddressUpdate, AddressResponse
+from schemas.address import AddressCreate, AddressUpdate
 from models.address import Address
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
@@ -35,13 +35,12 @@ async def create_address(
 
 
 async def get_addresses(db: DBSession, current_user: CurrentUser) -> list[Address]:
-    result = await db.execute(select(Address))
+    result = await db.execute(select(Address).where(Address.user_id == current_user.id))
 
     addresses = result.scalars().all()
     if not addresses:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="address not fould"
-        )
+        return []
+
     return addresses
 
 
@@ -57,21 +56,15 @@ async def update_address(
             status_code=status.HTTP_404_NOT_FOUND, detail="address not found"
         )
 
-    # Update only the fields that were actually provided
     update_data = address_data.model_dump(exclude_unset=True)
 
     for field, value in update_data.items():
         setattr(existing_address, field, value)
 
-    db.add(update_address)
     await db.commit()
-    await db.refresh(update_address)
+    await db.refresh(existing_address)
 
-    result = await db.execute(
-        select(Address).where(current_user.id == address_data.user.id)
-    )
-
-    return result.scalar_one()
+    return existing_address
 
 
 async def delete_address(db: DBSession, current_user: CurrentUser, address_id: UUID):

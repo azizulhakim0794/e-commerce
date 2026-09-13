@@ -47,7 +47,12 @@ async def get_addresses(db: DBSession, current_user: CurrentUser) -> list[Addres
 async def update_address(
     db: DBSession, current_user: CurrentUser, address_data: AddressUpdate
 ) -> Address:
-    result = await db.execute(select(Address).where(current_user.id == Address.user_id))
+    result = await db.execute(
+        select(Address).where(
+            Address.id == address_data.id,
+            current_user.id == Address.user_id,
+        )
+    )
 
     existing_address = result.scalar_one_or_none()
 

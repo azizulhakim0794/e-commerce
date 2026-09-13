@@ -11,7 +11,8 @@ class Address(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     user_id: Mapped[UUID] = mapped_column(
-        ForeignKey("users.id"), nullable=False, unique=True
+        ForeignKey("users.id"),
+        nullable=False,
     )
     full_name: Mapped[str] = mapped_column(String)
     phone_number: Mapped[str] = mapped_column(String)

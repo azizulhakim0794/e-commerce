@@ -18,3 +18,7 @@ export type AddressFormValues = Omit<
   Address,
   "id" | "user_id"
 >;
+
+export type AddressUpdatePayload = AddressFormValues & {
+  id: string;
+};

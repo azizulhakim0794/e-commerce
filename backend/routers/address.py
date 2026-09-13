@@ -16,21 +16,21 @@ DBSession = Annotated[AsyncSession, Depends(get_db)]
 async def create_address(
     db: DBSession, current_user: CurrentUser, address_data: AddressCreate
 ):
-    return address_service.create_address(db, current_user, address_data)
+    return await address_service.create_address(db, current_user, address_data)
 
 
 @router.get("", response_model=list[AddressResponse])
 async def get_addresses(db: DBSession, current_user: CurrentUser):
-    return address_service.get_addresses(db, current_user)
+    return await address_service.get_addresses(db, current_user)
 
 
 @router.patch("", response_model=AddressResponse)
 async def update_address(
     db: DBSession, current_user: CurrentUser, address_data: AddressUpdate
 ):
-    return address_service.update_address(db, current_user, address_data)
+    return await address_service.update_address(db, current_user, address_data)
 
 
 @router.delete("", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_address(db: DBSession, current_user: CurrentUser, address_id: UUID):
-    return address_service.delete_address(db, current_user, address_id)
+    return await address_service.delete_address(db, current_user, address_id)

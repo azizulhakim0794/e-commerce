@@ -1,5 +1,9 @@
 import api from "../api";
-import type { Address, AddressFormValues } from "@/types/address";
+import type {
+  Address,
+  AddressFormValues,
+  AddressUpdatePayload,
+} from "@/types/address";
 
 export const addressService = {
   getAddresses: async (): Promise<Address[]> => {
@@ -12,7 +16,7 @@ export const addressService = {
     return response.data;
   },
 
-  updateAddress: async (payload: AddressFormValues): Promise<Address> => {
+  updateAddress: async (payload: AddressUpdatePayload): Promise<Address> => {
     const response = await api.patch<Address>("/address", payload);
     return response.data;
   },

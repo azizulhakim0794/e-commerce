@@ -30,6 +30,7 @@ export default function ProfilePage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
   const [formValues, setFormValues] =
     useState<AddressFormValues>(defaultAddressForm);
   const [formError, setFormError] = useState("");
@@ -84,6 +85,7 @@ export default function ProfilePage() {
 
   const openCreateModal = () => {
     setIsEditing(false);
+    setEditingAddressId(null);
     setFormValues(defaultAddressForm);
     setFormError("");
     setIsModalOpen(true);
@@ -91,6 +93,7 @@ export default function ProfilePage() {
 
   const openEditModal = (address: Address) => {
     setIsEditing(true);
+    setEditingAddressId(address.id);
     setFormValues({
       full_name: address.full_name,
       phone_number: address.phone_number,
@@ -109,6 +112,7 @@ export default function ProfilePage() {
   const closeModal = () => {
     setIsModalOpen(false);
     setIsEditing(false);
+    setEditingAddressId(null);
     setFormValues(defaultAddressForm);
     setFormError("");
   };
@@ -127,9 +131,13 @@ export default function ProfilePage() {
 
     setFormError("");
 
-    const result = isEditing
-      ? await handleRequest(addressService.updateAddress, formValues)
-      : await handleRequest(addressService.createAddress, formValues);
+    const result =
+      isEditing && editingAddressId
+        ? await handleRequest(addressService.updateAddress, {
+            ...formValues,
+            id: editingAddressId,
+          })
+        : await handleRequest(addressService.createAddress, formValues);
 
     if (!result.success) {
       setFormError("Something went wrong while saving the address.");
@@ -360,6 +368,7 @@ export default function ProfilePage() {
                     <input
                       type="text"
                       name="full_name"
+                      autoFocus
                       value={formValues.full_name}
                       onChange={handleFieldChange}
                       className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white"

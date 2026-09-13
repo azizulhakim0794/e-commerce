@@ -19,7 +19,7 @@ class AddressCreate(AddressBase):
 
 
 class AddressUpdate(AddressBase):
-    pass
+    id: UUID
 
 
 class AddressResponse(AddressBase):

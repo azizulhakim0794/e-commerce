@@ -13,16 +13,6 @@ from core.security import CurrentUser
 DBSesstion = Annotated[AsyncSession, Depends(get_db)]
 
 
-async def get_cart_products(db: DBSesstion, current_user: CurrentUser) -> list[Cart]:
-    result = await db.execute(
-        select(Cart)
-        .options(selectinload(Cart.items).selectinload(CartItem.product))
-        .where(Cart.user_id == current_user.id)
-    )
-
-    return result.scalars().all()
-
-
 async def save_product_into_cart(
     db: DBSesstion, current_user: CurrentUser, product_data: CartItemCreate
 ) -> Cart:
@@ -52,7 +42,8 @@ async def save_product_into_cart(
     # 4. Check whether product is already in cart
     result = await db.execute(
         select(CartItem).where(
-            CartItem.cart_id == cart.id, CartItem.product_id == product_data.product_id
+            CartItem.cart_id == cart.id,
+            CartItem.product_id == product_data.product_id,
         )
     )
 
@@ -80,6 +71,16 @@ async def save_product_into_cart(
     )
 
     return result.scalar_one()
+
+
+async def get_cart_products(db: DBSesstion, current_user: CurrentUser) -> list[Cart]:
+    result = await db.execute(
+        select(Cart)
+        .options(selectinload(Cart.items).selectinload(CartItem.product))
+        .where(Cart.user_id == current_user.id)
+    )
+
+    return result.scalars().all()
 
 
 async def update_cart_item_quantity(

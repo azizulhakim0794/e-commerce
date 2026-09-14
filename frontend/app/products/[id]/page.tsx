@@ -11,17 +11,18 @@ import {
   StarIcon,
 } from "@heroicons/react/24/outline";
 // import { getProduct } from "../../../lib/products";
-import { useStore } from "../../../store/StoreProvider";
 import { product_service } from "@/helper/services/product.service";
 import { useApi } from "@/hooks/useApi";
-import { Product } from "@/types";
+import { Product, CartItem } from "@/types";
+import OrderCheckoutModal from "@/components/OrderCheckoutModal";
 
 export default function ProductDetails() {
   const params = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const { addToCart } = useStore();
-  const { handleRequest, isLoading } = useApi();
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
+  const { handleRequest } = useApi();
   const router = useRouter();
 
   useEffect(() => {
@@ -59,6 +60,19 @@ export default function ProductDetails() {
     if (params.id) {
       loadProduct();
     }
+  };
+
+  const handleBuyNow = () => {
+    if (!product) return;
+
+    setCheckoutItems([
+      {
+        id: crypto.randomUUID(),
+        product,
+        quantity,
+      },
+    ]);
+    setIsCheckoutModalOpen(true);
   };
 
   if (!product)
@@ -159,13 +173,13 @@ export default function ProductDetails() {
               <CheckIcon className="h-5 w-5" /> Add to cart
             </button>
 
-            <Link
-              href="/checkout"
-              onClick={() => addToCart(product, quantity)}
+            <button
+              type="button"
+              onClick={handleBuyNow}
               className="w-full rounded-full border border-slate-300 px-6 py-3 text-center text-sm font-bold hover:border-teal-700 hover:text-teal-700 dark:border-slate-700"
             >
               Buy now
-            </Link>
+            </button>
           </div>
           <div className="mt-10 border-t border-slate-200 pt-7 dark:border-slate-800">
             <h2 className="text-sm font-bold uppercase tracking-widest">
@@ -182,6 +196,11 @@ export default function ProductDetails() {
           </div>
         </div>
       </div>
+      <OrderCheckoutModal
+        isOpen={isCheckoutModalOpen}
+        items={checkoutItems}
+        onClose={() => setIsCheckoutModalOpen(false)}
+      />
     </div>
   );
 }

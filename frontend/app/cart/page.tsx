@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useApi } from "@/hooks/useApi";
 import { product_service } from "@/helper/services/product.service";
 import { CartItem } from "@/types";
+import OrderCheckoutModal from "@/components/OrderCheckoutModal";
 
 type CartResponse = {
   id: string;
@@ -15,8 +16,8 @@ type CartResponse = {
 };
 
 export default function CartPage() {
-  const { cart, updateQuantity, removeFromCart } = useStore();
   const [cartProducts, setCartProducts] = useState<CartResponse[] | null>(null);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const { handleRequest } = useApi();
   const cartItems = cartProducts?.[0]?.items ?? [];
   const subtotal = cartItems.reduce(
@@ -60,11 +61,13 @@ export default function CartPage() {
   const handleUpdateCartsProduct = async (
     cart_id: string,
     quantity: number,
+    productQuantity: number,
     action_type: "add" | "remove",
   ) => {
-    if (action_type == "add") {
+    console.log("cart updtate");
+    if (action_type == "add" && productQuantity >= quantity) {
       handleCartUpdate(cart_id, quantity);
-    } else {
+    } else if (action_type == "remove") {
       handleCartUpdate(cart_id, quantity);
     }
   };
@@ -131,6 +134,7 @@ export default function CartPage() {
                           handleUpdateCartsProduct(
                             item.id,
                             item.quantity - 1,
+                            item.product.stock,
                             "remove",
                           )
                         }
@@ -147,6 +151,7 @@ export default function CartPage() {
                           handleUpdateCartsProduct(
                             item.id,
                             item.quantity + 1,
+                            item.product.stock,
                             "add",
                           )
                         }
@@ -185,15 +190,21 @@ export default function CartPage() {
                 <span className="font-black">${subtotal + shipping}</span>
               </div>
             </div>
-            <Link
-              href="/checkout"
-              className="mt-7 block rounded-full bg-slate-950 px-5 py-3.5 text-center text-sm font-bold text-white hover:bg-teal-700 dark:bg-white dark:text-slate-950"
+            <button
+              type="button"
+              onClick={() => setIsCheckoutModalOpen(true)}
+              className="mt-7 block w-full rounded-full bg-slate-950 px-5 py-3.5 text-center text-sm font-bold text-white hover:bg-teal-700 dark:bg-white dark:text-slate-950"
             >
               Proceed to checkout
-            </Link>
+            </button>
           </aside>
         </div>
       )}
+      <OrderCheckoutModal
+        isOpen={isCheckoutModalOpen}
+        items={cartItems}
+        onClose={() => setIsCheckoutModalOpen(false)}
+      />
     </div>
   );
 }

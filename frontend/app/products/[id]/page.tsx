@@ -13,9 +13,12 @@ import {
 } from "@heroicons/react/24/outline";
 // import { getProduct } from "../../../lib/products";
 import { product_service } from "@/helper/services/product.service";
+import { ratingService } from "@/helper/services/rating.service";
 import { useApi } from "@/hooks/useApi";
-import { Product, CartItem } from "@/types";
+import { Product, CartItem, Rating } from "@/types";
+import { useStore } from "@/store/StoreProvider";
 import OrderCheckoutModal from "@/components/OrderCheckoutModal";
+import RatingModal from "@/components/RatingModal";
 import Alert from "@/components/Alart";
 
 export default function ProductDetails() {
@@ -24,8 +27,11 @@ export default function ProductDetails() {
   const [quantity, setQuantity] = useState(1);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
+  const [ratings, setRatings] = useState<Rating[]>([]);
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const [message, setMessage] = useState<string>("");
   const { handleRequest } = useApi();
+  const { user } = useStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -40,8 +46,20 @@ export default function ProductDetails() {
       }
     };
 
+    const loadRatings = async () => {
+      const result = await handleRequest(
+        ratingService.getByProductId,
+        params.id,
+      );
+
+      if (result.success && Array.isArray(result.data)) {
+        setRatings(result.data);
+      }
+    };
+
     if (params.id) {
       loadProduct();
+      loadRatings();
     }
   }, [params.id]);
 
@@ -99,6 +117,9 @@ export default function ProductDetails() {
         </Link>
       </div>
     );
+  const ownRating = ratings.find(
+    (rating) => rating.user_name === user?.username,
+  );
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-16">
       {message && (
@@ -114,20 +135,47 @@ export default function ProductDetails() {
         <ArrowLeftIcon className="h-4 w-4" /> Back to shop
       </Link>
       <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-20">
-        <div className="relative aspect-square overflow-hidden rounded-3xl bg-slate-100 dark:bg-slate-800">
-          {product.image ? (
-            <Image
-              src={product.image}
-              alt={product.name}
-              fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-slate-200 text-sm font-bold uppercase tracking-[0.2em] text-slate-500 dark:bg-slate-700 dark:text-slate-300">
-              No image
-            </div>
-          )}
+        <div>
+          <div className="relative aspect-square overflow-hidden rounded-3xl bg-slate-100 dark:bg-slate-800">
+            {product.image ? (
+              <Image
+                src={product.image}
+                alt={product.name}
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-slate-200 text-sm font-bold uppercase tracking-[0.2em] text-slate-500 dark:bg-slate-700 dark:text-slate-300">
+                No image
+              </div>
+            )}
+          </div>
+          <div className="mt-6">
+            {user && !ownRating ? (
+              <button
+                type="button"
+                onClick={() => setIsRatingModalOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full bg-teal-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-teal-800"
+              >
+                <StarIcon className="h-4 w-4" /> Rate and review
+              </button>
+            ) : user && ownRating ? (
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2.5 dark:border-emerald-900 dark:bg-emerald-950/30">
+                <span className="text-sm font-bold text-emerald-900 dark:text-emerald-200">
+                  Reviewed
+                </span>
+                <div className="flex items-center gap-0.5">
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <StarIcon
+                      key={value}
+                      className={`h-4 w-4 ${value <= ownRating.rating ? "fill-amber-400 text-amber-400" : "text-slate-300"}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
         </div>
         <div className="flex flex-col justify-center">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-700 dark:text-teal-400">
@@ -231,6 +279,83 @@ export default function ProductDetails() {
         orderMode="buy-now"
         onClose={() => setIsCheckoutModalOpen(false)}
       />
+      <RatingModal
+        product={isRatingModalOpen ? product : null}
+        onClose={() => setIsRatingModalOpen(false)}
+        onSaved={(savedRating) => {
+          const nextRatings = ratings.some(
+            (rating) => rating.id === savedRating.id,
+          )
+            ? ratings.map((rating) =>
+                rating.id === savedRating.id ? savedRating : rating,
+              )
+            : [savedRating, ...ratings];
+          setRatings(nextRatings);
+          setProduct((current) =>
+            current
+              ? {
+                  ...current,
+                  rating:
+                    nextRatings.reduce(
+                      (sum, rating) => sum + rating.rating,
+                      0,
+                    ) / nextRatings.length,
+                  reviews: nextRatings.length,
+                }
+              : current,
+          );
+        }}
+      />
+
+      <section className="mt-20 border-t border-slate-200 pt-10 dark:border-slate-800">
+        <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-700 dark:text-teal-400">
+              Customer reviews
+            </p>
+            <h2 className="mt-2 text-3xl font-black">What people think</h2>
+          </div>
+          <div className="space-y-4">
+            {ratings.length === 0 ? (
+              <p className="text-sm text-slate-500">No reviews yet.</p>
+            ) : (
+              ratings.map((rating) => (
+                <article
+                  key={rating.id}
+                  className="border-b border-slate-200 pb-5 dark:border-slate-800"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="font-bold">{rating.user_name}</p>
+                    <div
+                      className="flex"
+                      aria-label={`${rating.rating} out of 5 stars`}
+                    >
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <StarIcon
+                          key={value}
+                          className={`h-4 w-4 ${value <= rating.rating ? "fill-amber-400 text-amber-400" : "text-slate-300"}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  {rating.comment && (
+                    <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                      {rating.comment}
+                    </p>
+                  )}
+                  {rating.photo_url && (
+                    <img
+                      src={rating.photo_url}
+                      alt={`Photo shared by ${rating.user_name}`}
+                      className="mt-4 h-28 w-28 rounded-xl object-cover"
+                    />
+                  )}
+                </article>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

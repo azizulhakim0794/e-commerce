@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from sqlalchemy import String, Boolean, DateTime, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db.database import Base
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
@@ -56,4 +56,9 @@ class User(Base):
         default=datetime.utcnow,
         nullable=False,
     )
-    __table_args__ = (UniqueConstraint("email"),)
+
+    ratings: Mapped[list["Rating"]] = relationship(
+        back_populates="user",
+    )
+
+    # __table_args__ = (UniqueConstraint("email"),)

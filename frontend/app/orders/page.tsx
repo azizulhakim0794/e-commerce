@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { orderService } from "@/helper/services/order.service";
+import RatingModal from "@/components/RatingModal";
 import { useApi } from "@/hooks/useApi";
 import { useStore } from "@/store/StoreProvider";
+import { StarIcon } from "@heroicons/react/24/outline";
 import type { OrderResponse } from "@/types/order";
 
 export default function OrdersPage() {
@@ -13,12 +15,12 @@ export default function OrdersPage() {
   const { handleRequest } = useApi();
   const [orders, setOrders] = useState<OrderResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [ratingProduct, setRatingProduct] = useState<
+    OrderResponse["order_items"][number]["product"] | null
+  >(null);
 
   useEffect(() => {
-    if (!user) {
-      setOrders([]);
-      return;
-    }
+    if (!user) return;
 
     const loadOrders = async () => {
       setIsLoading(true);
@@ -105,9 +107,9 @@ export default function OrdersPage() {
                     <p className="mt-2 font-bold">{order.id}</p>
                     <p className="mt-2 text-sm text-slate-500">
                       Placed on{" "}
-                      {new Date(
-                        order.created_at ?? Date.now(),
-                      ).toLocaleDateString()}
+                      {order.created_at
+                        ? new Date(order.created_at).toLocaleDateString()
+                        : "Pending"}
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-3">
@@ -116,14 +118,6 @@ export default function OrdersPage() {
                     >
                       {statusLabel}
                     </span>
-                    {order.status === "delivered" ? (
-                      <button
-                        type="button"
-                        className="rounded-full border border-teal-700 px-3 py-1.5 text-xs font-bold text-teal-700 transition hover:bg-teal-700 hover:text-white"
-                      >
-                        Review & rate
-                      </button>
-                    ) : null}
                   </div>
                 </div>
 
@@ -139,6 +133,16 @@ export default function OrdersPage() {
                           <p className="text-sm text-slate-500">
                             Quantity: {item.quantity}
                           </p>
+                          {order.status === "delivered" ? (
+                            <button
+                              type="button"
+                              onClick={() => setRatingProduct(item.product)}
+                              className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-teal-700 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-teal-800"
+                            >
+                              <StarIcon className="h-3.5 w-3.5" />
+                              Review & rate
+                            </button>
+                          ) : null}
                         </div>
                         <p className="font-black">
                           ${item.product.price * item.quantity}
@@ -176,6 +180,11 @@ export default function OrdersPage() {
       >
         Keep shopping →
       </Link>
+
+      <RatingModal
+        product={ratingProduct}
+        onClose={() => setRatingProduct(null)}
+      />
     </div>
   );
 }

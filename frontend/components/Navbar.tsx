@@ -66,7 +66,7 @@ export default function Navbar() {
           >
             <MagnifyingGlassIcon className="h-5 w-5" />
           </Link>
-          <button
+          {/* <button
             onClick={toggleTheme}
             className="rounded-full p-2.5 text-slate-600 hover:bg-slate-200/70 dark:text-slate-300"
             aria-label="Toggle color theme"
@@ -77,7 +77,7 @@ export default function Navbar() {
               ) : (
                 <MoonIcon className="h-5 w-5" />
               ))}
-          </button>
+          </button> */}
           <Link
             href="/cart"
             className="relative rounded-full p-2.5 text-slate-600 hover:bg-slate-200/70 dark:text-slate-300"

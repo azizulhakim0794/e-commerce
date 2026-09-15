@@ -1,10 +1,6 @@
 import { User } from "@/types/auth";
 import api from "../api";
 
-// interface LoginResponse {
-//   message: string;
-// }
-
 interface RegisterPayload {
   username: string;
   email: string;

@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
@@ -11,6 +12,36 @@ from models import Address, Cart, CartItem, Product, Order, OrderItem
 from schemas.order import BuyNowRequest, CreateOrderFromCart, OrderResponse
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
+
+
+def _normalize_datetime(value: datetime | None) -> datetime | None:
+    if value is None:
+        return None
+
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+
+    return value.astimezone(timezone.utc)
+
+
+def _build_order_response(order: Order) -> OrderResponse:
+    items = list(order.items)
+
+    created_at = _normalize_datetime(
+        min((item.created_at for item in items), default=datetime.now(timezone.utc))
+    )
+    delivery_at = created_at + timedelta(hours=4)
+    now = datetime.now(timezone.utc)
+
+    status = "delivered" if now >= delivery_at else "processing"
+
+    return OrderResponse(
+        id=order.id,
+        order_items=items,
+        created_at=created_at,
+        delivery_at=delivery_at,
+        status=status,
+    )
 
 
 async def _validate_address(
@@ -80,6 +111,9 @@ async def create_order_from_cart(
             )
 
     order = Order(user_id=current_user.id)
+    db.add(order)
+    await db.flush()
+
     order_items: list[OrderItem] = []
 
     for cart_item in cart.items:
@@ -96,7 +130,6 @@ async def create_order_from_cart(
 
         product.stock -= cart_item.quantity
 
-    db.add(order)
     db.add_all(order_items)
 
     for cart_item in list(cart.items):
@@ -113,10 +146,7 @@ async def create_order_from_cart(
 
     created_order = result.scalar_one()
 
-    return OrderResponse(
-        id=created_order.id,
-        order_items=created_order.items,
-    )
+    return _build_order_response(created_order)
 
 
 async def create_order_buy_now(
@@ -150,6 +180,9 @@ async def create_order_buy_now(
         )
 
     order = Order(user_id=current_user.id)
+    db.add(order)
+    await db.flush()
+
     order_item = OrderItem(
         order_id=order.id,
         product_id=product.id,
@@ -159,7 +192,6 @@ async def create_order_buy_now(
 
     product.stock -= order_data.quantity
 
-    db.add(order)
     db.add(order_item)
     await db.commit()
     await db.refresh(order)
@@ -172,10 +204,7 @@ async def create_order_buy_now(
 
     created_order = result.scalar_one()
 
-    return OrderResponse(
-        id=created_order.id,
-        order_items=created_order.items,
-    )
+    return _build_order_response(created_order)
 
 
 async def get_order_product(
@@ -188,4 +217,6 @@ async def get_order_product(
         .where(Order.user_id == current_user.id)
     )
 
-    return result.scalars().all()
+    orders = result.scalars().all()
+
+    return [_build_order_response(order) for order in orders]

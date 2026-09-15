@@ -212,21 +212,35 @@ export default function ProfilePage() {
           </dl>
         </section>
 
-        <section className="rounded-2xl bg-teal-800 p-6 text-white">
+        <section className="rounded-2xl bg-teal-800 p-6 text-white shadow-sm">
           <p className="text-xs font-bold uppercase tracking-widest text-teal-200">
             Member perks
           </p>
-          <h2 className="mt-4 text-2xl font-black">Good choices, rewarded.</h2>
-          <p className="mt-3 text-sm leading-6 text-teal-100">
+
+          <h2 className="mt-3 text-2xl font-black tracking-tight">
+            Good choices, rewarded.
+          </h2>
+
+          <p className="mt-3 max-w-md text-sm leading-6 text-teal-100">
             Free delivery, early access to new edits, and a simpler way to keep
             track of your orders.
           </p>
-          <Link
-            href="/orders"
-            className="mt-6 inline-block rounded-full bg-white px-4 py-2 text-sm font-bold text-teal-900"
-          >
-            View orders
-          </Link>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="/orders"
+              className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-bold text-teal-900 transition hover:bg-teal-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-teal-800"
+            >
+              View orders
+            </Link>
+
+            <Link
+              href="/order"
+              className="inline-flex items-center justify-center rounded-full border border-teal-300/50 bg-teal-700/50 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-teal-800"
+            >
+              Pending orders
+            </Link>
+          </div>
         </section>
       </div>
 

@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -17,5 +18,8 @@ class BuyNowRequest(BaseModel):
 class OrderResponse(BaseModel):
     id: UUID
     order_items: list[CartItemResponse] = Field(default_factory=list)
+    created_at: datetime | None = None
+    delivery_at: datetime | None = None
+    status: str = "processing"
 
     model_config = {"from_attributes": True}

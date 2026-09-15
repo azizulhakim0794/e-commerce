@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CheckIcon, MapPinIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 import { addressService } from "@/helper/services/address.service";
+import { orderService } from "@/helper/services/order.service";
 import { useApi } from "@/hooks/useApi";
 import { useStore } from "@/store/StoreProvider";
 import type { CartItem } from "@/types";
@@ -14,12 +15,14 @@ type OrderCheckoutModalProps = {
   isOpen: boolean;
   items: CartItem[];
   onClose: () => void;
+  orderMode?: "cart" | "buy-now";
 };
 
 export default function OrderCheckoutModal({
   isOpen,
   items,
   onClose,
+  orderMode = "cart",
 }: OrderCheckoutModalProps) {
   const router = useRouter();
   const { user } = useStore();
@@ -88,17 +91,35 @@ export default function OrderCheckoutModal({
   const selectedAddress =
     addresses.find((address) => address.id === selectedAddressId) ?? null;
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selectedAddress) return;
 
-    const payload = {
-      orderId: `NS-${Date.now().toString().slice(-6)}`,
-      createdAt: new Date().toISOString(),
-      address: selectedAddress,
-      items,
-    };
+    const isBuyNow = orderMode === "buy-now";
 
-    sessionStorage.setItem("northstar-pending-order", JSON.stringify(payload));
+    let result;
+
+    if (isBuyNow) {
+      if (!items[0]) return;
+
+      result = await handleRequest(orderService.createOrderBuyNow, {
+        product_id: items[0].product.id,
+        quantity: items[0].quantity,
+        address_id: selectedAddress.id,
+      });
+    } else {
+      result = await handleRequest(orderService.createOrderFromCart, {
+        address_id: selectedAddress.id,
+      });
+    }
+
+    if (!result.success || !result.data) {
+      return;
+    }
+
+    sessionStorage.setItem(
+      "northstar-pending-order",
+      JSON.stringify(result.data),
+    );
     onClose();
     router.push("/order");
   };

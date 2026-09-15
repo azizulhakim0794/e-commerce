@@ -8,7 +8,7 @@ import { product_service } from "@/helper/services/product.service";
 import { useApi } from "@/hooks/useApi";
 
 export default function ProductCard({ product }: { product: Product }) {
-  const { addToCart } = useStore();
+  // const { addToCart } = useStore();
   const { handleRequest } = useApi();
 
   const handleCartUpdate = async (product_id: string) => {
@@ -86,14 +86,21 @@ export default function ProductCard({ product }: { product: Product }) {
               </span>
             )}
           </div>
-          <button
-            onClick={() => handleCartUpdate(product.id)}
-            className="flex items-center gap-1.5 rounded-full border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-700 hover:border-teal-700 hover:bg-teal-700 hover:text-white dark:border-slate-700 dark:text-slate-200"
-            aria-label={`Add ${product.name} to cart`}
-          >
-            <CheckIcon className="hidden h-3.5 w-3.5 sm:block" />
-            Add
-          </button>
+          {product.stock == 0 ? (
+            <span className="text-[oklch(57.7%_0.245_27.325)]">
+              {" "}
+              Out of stock
+            </span>
+          ) : (
+            <button
+              onClick={() => handleCartUpdate(product.id)}
+              className="flex items-center gap-1.5 rounded-full border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-700 hover:border-teal-700 hover:bg-teal-700 hover:text-white dark:border-slate-700 dark:text-slate-200"
+              aria-label={`Add ${product.name} to cart`}
+            >
+              <CheckIcon className="hidden h-3.5 w-3.5 sm:block" />
+              Add
+            </button>
+          )}
         </div>
       </div>
     </article>

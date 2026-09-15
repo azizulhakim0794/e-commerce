@@ -5,23 +5,27 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   ArrowLeftIcon,
+  BellAlertIcon,
   CheckIcon,
   MinusIcon,
   PlusIcon,
   StarIcon,
 } from "@heroicons/react/24/outline";
 // import { getProduct } from "../../../lib/products";
-import { useStore } from "../../../store/StoreProvider";
 import { product_service } from "@/helper/services/product.service";
 import { useApi } from "@/hooks/useApi";
-import { Product } from "@/types";
+import { Product, CartItem } from "@/types";
+import OrderCheckoutModal from "@/components/OrderCheckoutModal";
+import Alert from "@/components/Alart";
 
 export default function ProductDetails() {
   const params = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const { addToCart } = useStore();
-  const { handleRequest, isLoading } = useApi();
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
+  const [message, setMessage] = useState<string>("");
+  const { handleRequest } = useApi();
   const router = useRouter();
 
   useEffect(() => {
@@ -41,10 +45,7 @@ export default function ProductDetails() {
     }
   }, [params.id]);
 
-  const handle_product_into_cart = async (
-    quantity: number,
-    product: Product,
-  ) => {
+  const handleProductIntoCart = async (quantity: number, product: Product) => {
     const loadProduct = async () => {
       const result = await handleRequest(
         product_service.save_product_into_cart,
@@ -61,6 +62,31 @@ export default function ProductDetails() {
     }
   };
 
+  const handleBuyNow = () => {
+    if (!product) return;
+
+    setCheckoutItems([
+      {
+        id: crypto.randomUUID(),
+        product,
+        quantity,
+      },
+    ]);
+    setIsCheckoutModalOpen(true);
+  };
+
+  const showAlert = (message: string) => {
+    setMessage(message);
+
+    setTimeout(() => {
+      setMessage("");
+    }, 3000);
+  };
+
+  const handleAddToCart = () => {
+    showAlert("We will alert you when this product is back in stock.");
+  };
+
   if (!product)
     return (
       <div className="mx-auto max-w-7xl px-5 py-32 text-center">
@@ -75,6 +101,12 @@ export default function ProductDetails() {
     );
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-16">
+      {message && (
+        <div className="fixed top-4 right-4 z-50 w-full max-w-sm px-4">
+          <Alert type="warning" message={message} />
+        </div>
+      )}
+
       <Link
         href="/products"
         className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-teal-700"
@@ -112,7 +144,11 @@ export default function ProductDetails() {
             <span className="text-sm text-slate-500">
               {product.reviews} reviews
             </span>
-            <span className="text-sm font-bold text-teal-700">In stock</span>
+            <span
+              className={`text-sm font-bold ${product.stock > 0 ? "text-teal-700" : "text-[oklch(57.7%_0.245_27.325)]"} `}
+            >
+              {product.stock > 0 ? "In stock" : "Out of stock"}
+            </span>
           </div>
           <p className="mt-7 text-lg leading-8 text-slate-600 dark:text-slate-300">
             {product.description}
@@ -135,7 +171,7 @@ export default function ProductDetails() {
                 <MinusIcon className="h-4 w-4" />
               </button>
               <span className="w-8 text-center text-sm font-bold">
-                {quantity}
+                {product.stock == 0 ? product.stock : quantity}
               </span>
               <button
                 className="p-3"
@@ -147,25 +183,32 @@ export default function ProductDetails() {
                 <PlusIcon className="h-4 w-4" />
               </button>
             </div>
-            {/* <button
-              onClick={() => addToCart(product, quantity)}
-              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-bold text-white hover:bg-teal-700 dark:bg-white dark:text-slate-950"
-            > */}
 
-            <button
-              onClick={() => handle_product_into_cart(quantity, product)}
-              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-bold text-white hover:bg-teal-700 dark:bg-white dark:text-slate-950"
-            >
-              <CheckIcon className="h-5 w-5" /> Add to cart
-            </button>
+            {product.stock > 0 ? (
+              <>
+                <button
+                  onClick={() => handleProductIntoCart(quantity, product)}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-bold text-white hover:bg-teal-700 dark:bg-white dark:text-slate-950"
+                >
+                  <CheckIcon className="h-5 w-5" /> Add to cart
+                </button>
 
-            <Link
-              href="/checkout"
-              onClick={() => addToCart(product, quantity)}
-              className="w-full rounded-full border border-slate-300 px-6 py-3 text-center text-sm font-bold hover:border-teal-700 hover:text-teal-700 dark:border-slate-700"
-            >
-              Buy now
-            </Link>
+                <button
+                  type="button"
+                  onClick={handleBuyNow}
+                  className="w-full rounded-full border border-slate-300 px-6 py-3 text-center text-sm font-bold hover:border-teal-700 hover:text-teal-700 dark:border-slate-700"
+                >
+                  Buy now
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => handleAddToCart()}
+                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-bold text-white hover:bg-teal-700 dark:bg-white dark:text-slate-950"
+              >
+                <BellAlertIcon className="h-5 w-5" /> Set alart when it in stock
+              </button>
+            )}
           </div>
           <div className="mt-10 border-t border-slate-200 pt-7 dark:border-slate-800">
             <h2 className="text-sm font-bold uppercase tracking-widest">
@@ -182,6 +225,12 @@ export default function ProductDetails() {
           </div>
         </div>
       </div>
+      <OrderCheckoutModal
+        isOpen={isCheckoutModalOpen}
+        items={checkoutItems}
+        orderMode="buy-now"
+        onClose={() => setIsCheckoutModalOpen(false)}
+      />
     </div>
   );
 }

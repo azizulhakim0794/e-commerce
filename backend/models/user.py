@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime
+from sqlalchemy import String, Boolean, DateTime, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from db.database import Base
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
@@ -56,3 +56,4 @@ class User(Base):
         default=datetime.utcnow,
         nullable=False,
     )
+    __table_args__ = (UniqueConstraint("email"),)

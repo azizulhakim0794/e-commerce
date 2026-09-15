@@ -7,7 +7,7 @@ export default function CheckoutPage() {
   const { cart, clearCart, user } = useStore();
   const [placed, setPlaced] = useState(false);
   const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + item.product.price * item.quantity,
     0,
   );
   function placeOrder(event: FormEvent<HTMLFormElement>) {
@@ -124,9 +124,11 @@ export default function CheckoutPage() {
               className="mt-4 flex justify-between gap-4 text-sm"
             >
               <span className="text-slate-500">
-                {item.name} × {item.quantity}
+                {item.product.name} × {item.quantity}
               </span>
-              <span className="font-bold">${item.price * item.quantity}</span>
+              <span className="font-bold">
+                ${item.product.price * item.quantity}
+              </span>
             </div>
           ))}
           <div className="mt-6 flex justify-between border-t border-slate-200 pt-4 font-black dark:border-slate-700">

@@ -7,21 +7,21 @@ import type {
 
 export const orderService = {
   getOrders: async (): Promise<OrderResponse[]> => {
-    const response = await api.get<OrderResponse[]>("/orders");
-    return response.data;
+    const { data } = await api.get<OrderResponse[]>("/orders");
+    return data;
   },
 
   createOrderFromCart: async (
     payload: CreateOrderPayload,
   ): Promise<OrderResponse> => {
-    const response = await api.post<OrderResponse>("/orders", payload);
-    return response.data;
+    const { data } = await api.post<OrderResponse>("/orders", payload);
+    return data;
   },
 
   createOrderBuyNow: async (
     payload: CreateBuyNowPayload,
   ): Promise<OrderResponse> => {
-    const response = await api.post<OrderResponse>("/orders/buy-now", payload);
-    return response.data;
+    const { data } = await api.post<OrderResponse>("/orders/buy-now", payload);
+    return data;
   },
 };

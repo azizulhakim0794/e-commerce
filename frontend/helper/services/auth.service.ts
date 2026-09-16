@@ -1,10 +1,6 @@
 import { User } from "@/types/auth";
 import api from "../api";
 
-// interface LoginResponse {
-//   message: string;
-// }
-
 interface RegisterPayload {
   username: string;
   email: string;
@@ -18,43 +14,43 @@ interface LoginPayload {
 
 export const authService = {
     register: async (payload: RegisterPayload): Promise<User> => {
-        const response = await api.post<{
+        const { data } = await api.post<{
             id: string;
             username: string;
             email: string;
         }>("/users", payload);
 
         return {
-            id: response.data.id,
-            name: response.data.username,
-            username: response.data.username,
-            email: response.data.email,
+            id: data.id,
+            name: data.username,
+            username: data.username,
+            email: data.email,
         };
     },
 
     login: async (payload: LoginPayload): Promise<string> => {
-        const response = await api.post<string>("/users/token", payload);
+        const { data } = await api.post<string>("/users/token", payload);
 
-        return response.data;
+        return data;
     },
 
     getMe: async (): Promise<User> => {
-        const response = await api.get<{
+        const { data } = await api.get<{
             id: string;
             username: string;
             email: string;
         }>("/users/me");
 
         return {
-            id: response.data.id,
-            name: response.data.username,
-            username: response.data.username,
-            email: response.data.email,
+            id: data.id,
+            name: data.username,
+            username: data.username,
+            email: data.email,
         };
     },
 
     logout: async (): Promise<string> => {
-        const response = await api.post<string>("/users/logout");
-        return response.data;
+        const { data } = await api.post<string>("/users/logout");
+        return data;
     },
 };

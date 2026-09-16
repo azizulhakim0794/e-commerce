@@ -39,4 +39,10 @@ class Product(Base):
 
     specs: Mapped[list[str]] = mapped_column(JSON)
 
+    # ratings: Mapped["Product"] = relationship(
+    #     back_populates="product",
+    # )
+
+    ratings: Mapped[list["Rating"]] = relationship(back_populates="product")
+
     cart_items: Mapped[list["CartItem"]] = relationship(back_populates="product")

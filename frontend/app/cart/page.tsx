@@ -6,14 +6,8 @@ import { useStore } from "../../store/StoreProvider";
 import { useEffect, useState } from "react";
 import { useApi } from "@/hooks/useApi";
 import { product_service } from "@/helper/services/product.service";
-import { CartItem } from "@/types";
+import { CartItem, CartResponse } from "@/types";
 import OrderCheckoutModal from "@/components/OrderCheckoutModal";
-
-type CartResponse = {
-  id: string;
-  user_id: string;
-  items: CartItem[];
-};
 
 export default function CartPage() {
   const [cartProducts, setCartProducts] = useState<CartResponse[] | null>(null);

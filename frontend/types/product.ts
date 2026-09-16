@@ -23,3 +23,9 @@ export interface CartItem {
   product: Product;    // Product information
   quantity: number;    // How many the user wants
 }
+
+export interface CartResponse {
+  id: string;
+  user_id: string;
+  items: CartItem[];
+}

@@ -7,17 +7,34 @@ import { useStore } from "../store/StoreProvider";
 import { product_service } from "@/helper/services/product.service";
 import { useApi } from "@/hooks/useApi";
 
-export default function ProductCard({ product }: { product: Product }) {
-  // const { addToCart } = useStore();
+export default function ProductCard({
+  product,
+  onAlert,
+}: {
+  product: Product;
+  onAlert?: (
+    message: string,
+    type?: "success" | "error" | "warning" | "info",
+  ) => void;
+}) {
+  const { user } = useStore();
   const { handleRequest } = useApi();
 
   const handleCartUpdate = async (product_id: string) => {
+    if (!user?.id) {
+      onAlert?.("After login you can add this product to cart.", "warning");
+      return;
+    }
+
     const result = await handleRequest(product_service.save_product_into_cart, {
       quantity: 1,
       product_id,
     });
+
     if (result.success) {
-      console.log(result.success);
+      onAlert?.("Product added to cart.", "success");
+    } else {
+      onAlert?.("Unable to add this product to cart.", "error");
     }
   };
 

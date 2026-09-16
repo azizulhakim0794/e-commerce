@@ -10,13 +10,16 @@ class Settings(BaseSettings):
 
     database_url: str = "sqlite+aiosqlite:///./ecommerce.db"
 
+    cloudinary_cloud_name: str
+    cloudinary_api_key: str
+    cloudinary_api_secret: str
+
     secret_key: SecretStr
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     max_upload_size_bytes: int = 5 * 1024 * 1024
 
     posts_per_page: int = 10
-
     reset_token_expire_minutes: int = 60
 
     mail_server: str = "localhost"

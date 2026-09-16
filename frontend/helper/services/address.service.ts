@@ -7,18 +7,18 @@ import type {
 
 export const addressService = {
   getAddresses: async (): Promise<Address[]> => {
-    const response = await api.get<Address[]>("/address");
-    return response.data;
+    const { data } = await api.get<Address[]>("/address");
+    return data;
   },
 
   createAddress: async (payload: AddressFormValues): Promise<Address> => {
-    const response = await api.post<Address>("/address", payload);
-    return response.data;
+    const { data } = await api.post<Address>("/address", payload);
+    return data;
   },
 
   updateAddress: async (payload: AddressUpdatePayload): Promise<Address> => {
-    const response = await api.patch<Address>("/address", payload);
-    return response.data;
+    const { data } = await api.patch<Address>("/address", payload);
+    return data;
   },
 
   deleteAddress: async (addressId: string): Promise<void> => {

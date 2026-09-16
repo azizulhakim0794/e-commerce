@@ -3,8 +3,8 @@ import { Rating, RatingInput } from "@/types";
 
 export const ratingService = {
     getByProductId: async (productId: string): Promise<Rating[]> => {
-        const response = await api.get<Rating[]>(`/rating/${productId}`);
-        return response.data;
+        const { data } = await api.get<Rating[]>(`/rating/${productId}`);
+        return data;
     },
 
     create: async (data: RatingInput): Promise<Rating> => {
@@ -13,10 +13,10 @@ export const ratingService = {
         formData.append("rating", String(data.rating));
         formData.append("comment", data.comment);
         if (data.photo) formData.append("photo", data.photo);
-        const response = await api.post<Rating>("/rating", formData, {
+        const { data: responseData } = await api.post<Rating>("/rating", formData, {
             headers: { "Content-Type": "multipart/form-data" },
         });
-        return response.data;
+        return responseData;
     },
 
     update: async (
@@ -27,9 +27,9 @@ export const ratingService = {
         formData.append("rating", String(payload.rating));
         formData.append("comment", payload.comment);
         if (payload.photo) formData.append("photo", payload.photo);
-        const response = await api.patch<Rating>(`/rating/${id}`, formData, {
+        const { data: responseData } = await api.patch<Rating>(`/rating/${id}`, formData, {
             headers: { "Content-Type": "multipart/form-data" },
         });
-        return response.data;
+        return responseData;
     },
 };

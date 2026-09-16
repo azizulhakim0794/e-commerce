@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   FunnelIcon,
   MagnifyingGlassIcon,
@@ -10,10 +10,18 @@ import { categories } from "../../lib/products";
 import { Product } from "@/types";
 import { useApi } from "@/hooks/useApi";
 import { product_service } from "@/helper/services/product.service";
+import Alert from "@/components/Alart";
+
+type AlertType = "success" | "error" | "warning" | "info";
 
 export default function Products() {
   const [query, setQuery] = useState("");
   const [products, setProducts] = useState<Product[]>();
+  const [alert, setAlert] = useState<{
+    type: AlertType;
+    message: string;
+  } | null>(null);
+  const alertTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { handleRequest, isLoading } = useApi();
   const [category, setCategory] = useState(() =>
     typeof window === "undefined"
@@ -35,6 +43,16 @@ export default function Products() {
   }, []);
   const [sort, setSort] = useState("default");
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const showAlert = (message: string, type: AlertType = "warning") => {
+    if (alertTimeoutRef.current) {
+      clearTimeout(alertTimeoutRef.current);
+    }
+
+    setAlert({ type, message });
+    alertTimeoutRef.current = setTimeout(() => setAlert(null), 3000);
+  };
+
   const filtered = useMemo(() => {
     const result = (products ?? []).filter(
       (product) =>
@@ -56,6 +74,12 @@ export default function Products() {
   }, [category, products, query, sort]);
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-16">
+      {alert && (
+        <div className="fixed top-4 right-4 z-50 w-full max-w-sm px-4">
+          <Alert type={alert.type} message={alert.message} />
+        </div>
+      )}
+
       <div className="flex flex-wrap items-end justify-between gap-5">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-700 dark:text-teal-400">
@@ -138,7 +162,11 @@ export default function Products() {
           {filtered.length ? (
             <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:gap-x-6">
               {filtered.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAlert={showAlert}
+                />
               ))}
             </div>
           ) : (

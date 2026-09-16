@@ -78,18 +78,20 @@ export default function Navbar() {
                 <MoonIcon className="h-5 w-5" />
               ))}
           </button> */}
-          <Link
-            href="/cart"
-            className="relative rounded-full p-2.5 text-slate-600 hover:bg-slate-200/70 dark:text-slate-300"
-            aria-label={`Cart with ${count} items`}
-          >
-            <ShoppingBagIcon className="h-5 w-5" />
-            {count > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-bold text-white">
-                {count}
-              </span>
-            )}
-          </Link>
+          {user?.id && (
+            <Link
+              href="/cart"
+              className="relative rounded-full p-2.5 text-slate-600 hover:bg-slate-200/70 dark:text-slate-300"
+              aria-label={`Cart with ${count} items`}
+            >
+              <ShoppingBagIcon className="h-5 w-5" />
+              {count > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-bold text-white">
+                  {count}
+                </span>
+              )}
+            </Link>
+          )}
           <Link
             href={user ? "/profile" : "/login"}
             className="hidden rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-teal-700 lg:block dark:bg-white dark:text-slate-950"

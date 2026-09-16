@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeftIcon,
   BellAlertIcon,
@@ -29,7 +29,11 @@ export default function ProductDetails() {
   const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
   const [ratings, setRatings] = useState<Rating[]>([]);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
-  const [message, setMessage] = useState<string>("");
+  const [alert, setAlert] = useState<{
+    type: "success" | "error" | "warning" | "info";
+    message: string;
+  } | null>(null);
+  const alertTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { handleRequest } = useApi();
   const { user } = useStore();
   const router = useRouter();
@@ -75,8 +79,10 @@ export default function ProductDetails() {
       }
     };
 
-    if (params.id) {
+    if (params.id && user?.id) {
       loadProduct();
+    } else if (!user?.id) {
+      showAlert("After login you can add this product to cart.", "warning");
     }
   };
 
@@ -93,16 +99,23 @@ export default function ProductDetails() {
     setIsCheckoutModalOpen(true);
   };
 
-  const showAlert = (message: string) => {
-    setMessage(message);
+  const showAlert = (
+    message: string,
+    type: "success" | "error" | "warning" | "info" = "warning",
+  ) => {
+    if (alertTimeoutRef.current) {
+      clearTimeout(alertTimeoutRef.current);
+    }
 
-    setTimeout(() => {
-      setMessage("");
+    setAlert({ type, message });
+
+    alertTimeoutRef.current = setTimeout(() => {
+      setAlert(null);
     }, 3000);
   };
 
   const handleAddToCart = () => {
-    showAlert("We will alert you when this product is back in stock.");
+    showAlert("We will alert you when this product is back in stock.", "info");
   };
 
   if (!product)
@@ -122,9 +135,9 @@ export default function ProductDetails() {
   );
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-16">
-      {message && (
+      {alert && (
         <div className="fixed top-4 right-4 z-50 w-full max-w-sm px-4">
-          <Alert type="warning" message={message} />
+          <Alert type={alert.type} message={alert.message} />
         </div>
       )}
 

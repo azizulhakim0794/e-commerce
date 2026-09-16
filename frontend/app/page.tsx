@@ -1,12 +1,30 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { ArrowRightIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import ProductCard from "../components/ProductCard";
 import { categories } from "../lib/products";
 import { product_service } from "@/helper/services/product.service";
+import { Product } from "@/types";
 
-export default async function Home() {
-  const products = await product_service.get_products();
+export default function Home() {
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const result = await product_service.get_products();
+        setProducts(result);
+      } catch {
+        setProducts([]);
+      }
+    };
+
+    loadProducts();
+  }, []);
+
   return (
     <div>
       <section className="mx-auto grid max-w-7xl gap-8 px-5 pb-16 pt-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:px-8 lg:pb-24 lg:pt-16">

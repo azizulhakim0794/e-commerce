@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   FunnelIcon,
   MagnifyingGlassIcon,
@@ -22,13 +23,11 @@ export default function Products() {
     message: string;
   } | null>(null);
   const alertTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { handleRequest, isLoading } = useApi();
-  const [category, setCategory] = useState(() =>
-    typeof window === "undefined"
-      ? "All"
-      : (new URLSearchParams(window.location.search).get("category") ?? "All"),
+  const searchParams = useSearchParams();
+  const { handleRequest } = useApi();
+  const [category, setCategory] = useState(
+    searchParams.get("category") ?? "All",
   );
-  useEffect(() => {}, []);
 
   useEffect(() => {
     const loadProduct = async () => {

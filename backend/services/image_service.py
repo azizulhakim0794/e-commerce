@@ -1,10 +1,15 @@
-import cloudinary.uploader
+from fastapi import UploadFile
+from core.cloudinary import cloudinary
 
 
-async def upload_image(file):
+async def upload_image(
+    file: UploadFile,
+    folder: str,
+) -> dict[str, str]:
+
     result = cloudinary.uploader.upload(
         file.file,
-        folder="ecommerce/products",
+        folder=folder,
         resource_type="image",
         transformation=[
             {

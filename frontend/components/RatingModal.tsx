@@ -1,16 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  PhotoIcon,
-  StarIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
+import { PhotoIcon, StarIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 import { ratingService } from "@/helper/services/rating.service";
 import { useApi } from "@/hooks/useApi";
 import { useStore } from "@/store/StoreProvider";
 import type { Product, Rating } from "@/types";
+import Loading from "./Loading";
 
 type RatingModalProps = {
   product: Product | null;
@@ -114,7 +111,9 @@ export default function RatingModal({
         </h2>
 
         {isLoading ? (
-          <p className="mt-8 text-sm text-slate-500">Loading your review...</p>
+          <div className="mx-auto max-w-xl px-5 py-32 text-center">
+            <Loading />
+          </div>
         ) : (
           <>
             <div className="mt-7 flex gap-1" aria-label="Choose a rating">

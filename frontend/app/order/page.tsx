@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import type { OrderResponse } from "@/types/order";
+import Loading from "../loading";
 
 export default function OrderPage() {
   const router = useRouter();
@@ -36,7 +37,7 @@ export default function OrderPage() {
   if (isLoadingOrder) {
     return (
       <div className="mx-auto max-w-xl px-5 py-32 text-center">
-        <h1 className="text-3xl font-black">Loading your order...</h1>
+        <Loading />
       </div>
     );
   }

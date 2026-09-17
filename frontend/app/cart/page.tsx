@@ -14,7 +14,7 @@ export default function CartPage() {
   const [cartProducts, setCartProducts] = useState<CartResponse[] | null>(null);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const { handleRequest } = useApi();
-  const { user, isSessionLoading } = useStore();
+  const { user, isSessionLoading, syncCart } = useStore();
   const cartItems = cartProducts?.[0]?.items ?? [];
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
@@ -25,14 +25,17 @@ export default function CartPage() {
   const loadProduct = async () => {
     const result = await handleRequest(product_service.get_cart_product);
 
-    setCartProducts(
-      result.success && Array.isArray(result.data) ? result.data : [],
-    );
+    const products =
+      result.success && Array.isArray(result.data) ? result.data : [];
+
+    setCartProducts(products);
+    syncCart(products[0]?.items ?? []);
   };
   useEffect(() => {
     if (isSessionLoading) return;
     if (!user) {
       setCartProducts([]);
+      syncCart([]);
       return;
     }
 

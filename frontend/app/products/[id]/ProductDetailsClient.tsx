@@ -38,7 +38,7 @@ export default function ProductDetails() {
   } | null>(null);
   const alertTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { handleRequest } = useApi();
-  const { user } = useStore();
+  const { user, addToCart } = useStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -103,6 +103,7 @@ export default function ProductDetails() {
       );
 
       if (result.success && result.data) {
+        addToCart(product, quantity);
         router.push("/cart");
       }
     };

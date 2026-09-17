@@ -19,6 +19,7 @@ interface StoreContextValue {
   theme: "light" | "dark";
   isSessionLoading: boolean;
   addToCart: (product: Product, quantity?: number) => void;
+  syncCart: (items: CartItem[]) => void;
   updateQuantity: (id: string | number, quantity: number) => void;
   removeFromCart: (id: string | number) => void;
   clearCart: () => void;
@@ -113,6 +114,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             },
           ];
         }),
+      syncCart: (items: CartItem[]) => setCart(items),
       updateQuantity: (id: string | number, quantity: number) =>
         setCart((current) =>
           quantity < 1

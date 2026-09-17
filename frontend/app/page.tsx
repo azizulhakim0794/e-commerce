@@ -2,15 +2,32 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRightIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import ProductCard from "../components/ProductCard";
 import { categories } from "../lib/products";
 import { product_service } from "@/helper/services/product.service";
 import { Product } from "@/types";
+import Alert from "@/components/Alart";
+
+type AlertType = "success" | "error" | "warning" | "info";
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [alert, setAlert] = useState<{
+    type: AlertType;
+    message: string;
+  } | null>(null);
+  const alertTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showAlert = (message: string, type: AlertType = "warning") => {
+    if (alertTimeoutRef.current) {
+      clearTimeout(alertTimeoutRef.current);
+    }
+
+    setAlert({ type, message });
+    alertTimeoutRef.current = setTimeout(() => setAlert(null), 3000);
+  };
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -27,6 +44,12 @@ export default function Home() {
 
   return (
     <div>
+      {alert && (
+        <div className="fixed top-4 right-4 z-50 w-full max-w-sm px-4">
+          <Alert type={alert.type} message={alert.message} />
+        </div>
+      )}
+
       <section className="mx-auto grid max-w-7xl gap-8 px-5 pb-16 pt-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:px-8 lg:pb-24 lg:pt-16">
         <div className="max-w-xl">
           <div className="mb-6 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-teal-700 dark:text-teal-400">
@@ -151,7 +174,11 @@ export default function Home() {
         </div>
         <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-6">
           {products.slice(0, 8).map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              onAlert={showAlert}
+            />
           ))}
         </div>
       </section>

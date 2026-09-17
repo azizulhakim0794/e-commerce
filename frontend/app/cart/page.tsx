@@ -13,6 +13,7 @@ export default function CartPage() {
   const [cartProducts, setCartProducts] = useState<CartResponse[] | null>(null);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const { handleRequest } = useApi();
+  const { user, isSessionLoading } = useStore();
   const cartItems = cartProducts?.[0]?.items ?? [];
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
@@ -23,13 +24,19 @@ export default function CartPage() {
   const loadProduct = async () => {
     const result = await handleRequest(product_service.get_cart_product);
 
-    if (result.success && Array.isArray(result.data)) {
-      setCartProducts(result.data);
-    }
+    setCartProducts(
+      result.success && Array.isArray(result.data) ? result.data : [],
+    );
   };
   useEffect(() => {
-    loadProduct();
-  }, []);
+    if (isSessionLoading) return;
+    if (!user) {
+      setCartProducts([]);
+      return;
+    }
+
+    void loadProduct();
+  }, [isSessionLoading, user]);
 
   const hanldeRemoveProductFromCart = async (cart_id: string) => {
     const result = await handleRequest(
@@ -74,7 +81,23 @@ export default function CartPage() {
       <h1 className="mt-2 text-4xl font-black tracking-tight">
         Ready when you are.
       </h1>
-      {cartItems.length === 0 ? (
+      {isSessionLoading || cartProducts === null ? (
+        <main
+          className="flex min-h-[40vh] items-center justify-center px-5 py-24"
+          aria-busy="true"
+          aria-live="polite"
+        >
+          <div className="flex flex-col items-center gap-4 text-center">
+            <span
+              className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-teal-700 dark:border-slate-700 dark:border-t-teal-400"
+              aria-hidden="true"
+            />
+            <p className="text-sm font-bold tracking-wide text-slate-500 dark:text-slate-300">
+              Loading...
+            </p>
+          </div>
+        </main>
+      ) : cartItems.length === 0 ? (
         <div className="py-24 text-center">
           <p className="text-xl font-bold">Your cart is empty.</p>
           <p className="mt-2 text-sm text-slate-500">

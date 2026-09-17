@@ -11,8 +11,8 @@ import {
   PlusIcon,
   StarIcon,
 } from "@heroicons/react/24/outline";
-// import { getProduct } from "../../../lib/products";
 import { product_service } from "@/helper/services/product.service";
+import { orderService } from "@/helper/services/order.service";
 import { ratingService } from "@/helper/services/rating.service";
 import { useApi } from "@/hooks/useApi";
 import { Product, CartItem, Rating } from "@/types";
@@ -24,10 +24,12 @@ import Alert from "@/components/Alart";
 export default function ProductDetails() {
   const params = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
+  const [isProductLoading, setIsProductLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
   const [ratings, setRatings] = useState<Rating[]>([]);
+  const [hasPurchased, setHasPurchased] = useState(false);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const [alert, setAlert] = useState<{
     type: "success" | "error" | "warning" | "info";
@@ -40,13 +42,18 @@ export default function ProductDetails() {
 
   useEffect(() => {
     const loadProduct = async () => {
-      const result = await handleRequest(
-        product_service.get_product,
-        params.id,
-      );
+      setIsProductLoading(true);
+      try {
+        const result = await handleRequest(
+          product_service.get_product,
+          params.id,
+        );
 
-      if (result.success && result.data) {
-        setProduct(result.data);
+        if (result.success && result.data) {
+          setProduct(result.data);
+        }
+      } finally {
+        setIsProductLoading(false);
       }
     };
 
@@ -61,11 +68,31 @@ export default function ProductDetails() {
       }
     };
 
+    const loadPurchaseStatus = async () => {
+      if (!user) {
+        setHasPurchased(false);
+        return;
+      }
+
+      const result = await handleRequest(orderService.getOrders);
+      const purchased =
+        result.success && Array.isArray(result.data)
+          ? result.data.some(
+              (order) =>
+                order.status === "delivered" &&
+                order.order_items.some((item) => item.product_id === params.id),
+            )
+          : false;
+
+      setHasPurchased(purchased);
+    };
+
     if (params.id) {
       loadProduct();
       loadRatings();
+      loadPurchaseStatus();
     }
-  }, [params.id]);
+  }, [params.id, user]);
 
   const handleProductIntoCart = async (quantity: number, product: Product) => {
     const loadProduct = async () => {
@@ -118,6 +145,25 @@ export default function ProductDetails() {
     showAlert("We will alert you when this product is back in stock.", "info");
   };
 
+  if (isProductLoading)
+    return (
+      <main
+        className="flex min-h-[60vh] items-center justify-center px-5 py-24"
+        aria-busy="true"
+        aria-live="polite"
+      >
+        <div className="flex flex-col items-center gap-4 text-center">
+          <span
+            className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-teal-700 dark:border-slate-700 dark:border-t-teal-400"
+            aria-hidden="true"
+          />
+          <p className="text-sm font-bold tracking-wide text-slate-500 dark:text-slate-300">
+            Loading...
+          </p>
+        </div>
+      </main>
+    );
+
   if (!product)
     return (
       <div className="mx-auto max-w-7xl px-5 py-32 text-center">
@@ -133,6 +179,7 @@ export default function ProductDetails() {
   const ownRating = ratings.find(
     (rating) => rating.user_name === user?.username,
   );
+
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-16">
       {alert && (
@@ -165,7 +212,7 @@ export default function ProductDetails() {
             )}
           </div>
           <div className="mt-6">
-            {user && !ownRating ? (
+            {user && hasPurchased && !ownRating ? (
               <button
                 type="button"
                 onClick={() => setIsRatingModalOpen(true)}
@@ -173,7 +220,7 @@ export default function ProductDetails() {
               >
                 <StarIcon className="h-4 w-4" /> Rate and review
               </button>
-            ) : user && ownRating ? (
+            ) : user && hasPurchased && ownRating ? (
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2.5 dark:border-emerald-900 dark:bg-emerald-950/30">
                 <span className="text-sm font-bold text-emerald-900 dark:text-emerald-200">
                   Reviewed

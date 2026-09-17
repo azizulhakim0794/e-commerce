@@ -44,18 +44,6 @@ export default function Navbar() {
             >
               Shop
             </Link>
-            <Link
-              href="/products?category=New"
-              className="text-sm font-semibold text-slate-600 hover:text-teal-700 dark:text-slate-300"
-            >
-              New arrivals
-            </Link>
-            <Link
-              href="/products?category=Best%20sellers"
-              className="text-sm font-semibold text-slate-600 hover:text-teal-700 dark:text-slate-300"
-            >
-              Best sellers
-            </Link>
           </nav>
         </div>
         <div className="flex items-center gap-2">

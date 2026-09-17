@@ -33,7 +33,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [isHydrated, setIsHydrated] = useState(false);
-  const { handleRequest, isLoading } = useApi();
+  const [isSessionLoading, setIsSessionLoading] = useState(true);
+  const { handleRequest } = useApi();
 
   useEffect(() => {
     const savedCart = window.localStorage.getItem("northstar-cart");
@@ -66,14 +67,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const getMe = async () => {
-    const response = await handleRequest(authService.getMe());
+    try {
+      const response = await handleRequest(authService.getMe());
 
-    if (response.success && response.data) {
-      setUser(response.data);
-      return;
+      if (response.success && response.data) {
+        setUser(response.data);
+        return;
+      }
+
+      setUser(null);
+    } finally {
+      setIsSessionLoading(false);
     }
-
-    setUser(null);
   };
 
   const value = useMemo(
@@ -81,7 +86,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       cart,
       user,
       theme,
-      isSessionLoading: isLoading,
+      isSessionLoading,
       addToCart: (product: Product, quantity = 1) =>
         setCart((current) => {
           const existing = current.find(
@@ -123,7 +128,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       toggleTheme: () =>
         setTheme((current) => (current === "light" ? "dark" : "light")),
     }),
-    [cart, user, theme, isLoading],
+    [cart, user, theme, isSessionLoading],
   );
 
   return (

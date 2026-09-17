@@ -9,7 +9,7 @@ from core.security import CurrentUser
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 from schemas.rating import RatingCreate, RatingResponse, RatingUpdate
-from models import Rating, Product
+from models import Order, OrderItem, Rating, Product
 from core.config import settings
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
@@ -36,6 +36,25 @@ async def create_rating(
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
+        )
+
+    orders_result = await db.execute(
+        select(Order)
+        .options(selectinload(Order.items))
+        .where(
+            Order.user_id == current_user.id,
+            Order.items.any(OrderItem.product_id == product.id),
+        )
+    )
+    has_delivered_order = any(
+        _build_order_response(order).status == "delivered"
+        for order in orders_result.scalars().all()
+    )
+
+    if not has_delivered_order:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can review products only after delivery",
         )
 
     existing_result = await db.execute(

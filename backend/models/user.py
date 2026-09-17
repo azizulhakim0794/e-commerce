@@ -29,10 +29,10 @@ class User(Base):
         index=True,
     )
 
-    # image_file: Mapped[str | None] = mapped_column(
-    #     String(255),
-    #     nullable=True,
-    # )
+    image_file: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
 
     password_hash: Mapped[str] = mapped_column(
         String(255),

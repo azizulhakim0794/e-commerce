@@ -12,12 +12,14 @@ import { Product } from "@/types";
 import { useApi } from "@/hooks/useApi";
 import { product_service } from "@/helper/services/product.service";
 import Alert from "@/components/Alart";
+import Loading from "@/components/Loading";
 
 type AlertType = "success" | "error" | "warning" | "info";
 
 export default function Products() {
   const [query, setQuery] = useState("");
   const [products, setProducts] = useState<Product[]>();
+  const [isProductsLoading, setIsProductsLoading] = useState(true);
   const [alert, setAlert] = useState<{
     type: AlertType;
     message: string;
@@ -31,14 +33,21 @@ export default function Products() {
 
   useEffect(() => {
     const loadProduct = async () => {
-      const result = await handleRequest(product_service.get_products);
+      setIsProductsLoading(true);
+      try {
+        const result = await handleRequest(product_service.get_products);
 
-      if (result.success && result.data) {
-        setProducts(result.data);
+        if (result.success && Array.isArray(result.data)) {
+          setProducts(result.data);
+        } else {
+          setProducts([]);
+        }
+      } finally {
+        setIsProductsLoading(false);
       }
     };
 
-    loadProduct();
+    void loadProduct();
   }, []);
   const [sort, setSort] = useState("default");
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -158,7 +167,9 @@ export default function Products() {
               </select>
             </label>
           </div>
-          {filtered.length ? (
+          {isProductsLoading ? (
+            <Loading message="Loading products..." minHeight="min-h-[40vh]" />
+          ) : filtered.length ? (
             <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:gap-x-6">
               {filtered.map((product) => (
                 <ProductCard

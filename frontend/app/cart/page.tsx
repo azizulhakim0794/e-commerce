@@ -8,6 +8,7 @@ import { useApi } from "@/hooks/useApi";
 import { product_service } from "@/helper/services/product.service";
 import { CartItem, CartResponse } from "@/types";
 import OrderCheckoutModal from "@/components/OrderCheckoutModal";
+import Loading from "@/components/Loading";
 
 export default function CartPage() {
   const [cartProducts, setCartProducts] = useState<CartResponse[] | null>(null);
@@ -82,21 +83,7 @@ export default function CartPage() {
         Ready when you are.
       </h1>
       {isSessionLoading || cartProducts === null ? (
-        <main
-          className="flex min-h-[40vh] items-center justify-center px-5 py-24"
-          aria-busy="true"
-          aria-live="polite"
-        >
-          <div className="flex flex-col items-center gap-4 text-center">
-            <span
-              className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-teal-700 dark:border-slate-700 dark:border-t-teal-400"
-              aria-hidden="true"
-            />
-            <p className="text-sm font-bold tracking-wide text-slate-500 dark:text-slate-300">
-              Loading...
-            </p>
-          </div>
-        </main>
+        <Loading minHeight="min-h-[40vh]" />
       ) : cartItems.length === 0 ? (
         <div className="py-24 text-center">
           <p className="text-xl font-bold">Your cart is empty.</p>

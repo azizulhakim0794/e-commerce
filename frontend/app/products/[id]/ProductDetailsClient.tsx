@@ -20,6 +20,7 @@ import { useStore } from "@/store/StoreProvider";
 import OrderCheckoutModal from "@/components/OrderCheckoutModal";
 import RatingModal from "@/components/RatingModal";
 import Alert from "@/components/Alart";
+import Loading from "@/components/Loading";
 
 export default function ProductDetails() {
   const params = useParams<{ id: string }>();
@@ -145,24 +146,7 @@ export default function ProductDetails() {
     showAlert("We will alert you when this product is back in stock.", "info");
   };
 
-  if (isProductLoading)
-    return (
-      <main
-        className="flex min-h-[60vh] items-center justify-center px-5 py-24"
-        aria-busy="true"
-        aria-live="polite"
-      >
-        <div className="flex flex-col items-center gap-4 text-center">
-          <span
-            className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-teal-700 dark:border-slate-700 dark:border-t-teal-400"
-            aria-hidden="true"
-          />
-          <p className="text-sm font-bold tracking-wide text-slate-500 dark:text-slate-300">
-            Loading...
-          </p>
-        </div>
-      </main>
-    );
+  if (isProductLoading) return <Loading />;
 
   if (!product)
     return (

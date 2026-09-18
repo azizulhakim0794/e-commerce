@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
         source: "/media/:path*",
         destination: "http://localhost:8000/media/:path*",
       },
+      {
+        source: "/static/:path*",
+        destination: "http://localhost:8000/static/:path*",
+      },
     ];
   },
 };

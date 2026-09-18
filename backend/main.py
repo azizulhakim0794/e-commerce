@@ -43,6 +43,11 @@ app.mount(
     StaticFiles(directory=Path(__file__).resolve().parent / "media"),
     name="media",
 )
+app.mount(
+    "/static",
+    StaticFiles(directory=Path(__file__).resolve().parent / "static"),
+    name="static",
+)
 
 # CORS configuration
 app.add_middleware(

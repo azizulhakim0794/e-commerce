@@ -1,12 +1,10 @@
 import cloudinary
-from os import getenv
-from dotenv import load_dotenv
-
-load_dotenv()
+import cloudinary.uploader
+from core.config import settings
 
 cloudinary.config(
-    cloud_name=getenv("CLOUDINARY_CLOUD_NAME"),
-    api_key=getenv("CLOUDINARY_API_KEY"),
-    api_secret=getenv("CLOUDINARY_API_SECRET"),
+    cloud_name=settings.cloudinary_cloud_name,
+    api_key=settings.cloudinary_api_key,
+    api_secret=settings.cloudinary_api_secret,
     secure=True,
 )

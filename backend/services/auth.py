@@ -15,6 +15,7 @@ from core.security import (
 )
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
+DEFAULT_PROFILE_IMAGE = "/static/default-profile.svg"
 
 
 async def create_user(db: DBSession, user: UserCreate):
@@ -36,7 +37,7 @@ async def create_user(db: DBSession, user: UserCreate):
         email=user.email,
         username=user.username,
         password_hash=password_hash,
-        # image_file=user.image_file,
+        profile_pic=DEFAULT_PROFILE_IMAGE,
     )
 
     db.add(new_user)

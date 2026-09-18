@@ -19,7 +19,7 @@ class LoginResponse(BaseModel):
 
 class UserCreate(UserBase):
     password: str = Field(min_length=8)
-    # image_file: str = Field(min_length=8)
+    # profile_pic: str = Field(min_length=8)
 
 
 class UserPublic(BaseModel):
@@ -27,7 +27,7 @@ class UserPublic(BaseModel):
 
     id: UUID
     username: str
-    image_file: str | None = None
+    profile_pic: str | None = None
 
 
 class UserPrivate(UserPublic):
@@ -44,7 +44,7 @@ class UserUpdate(BaseModel):
         default=None,
         max_length=120,
     )
-    image_file: str | None = Field(
+    profile_pic: str | None = Field(
         default=None,
         min_length=1,
         max_length=200,

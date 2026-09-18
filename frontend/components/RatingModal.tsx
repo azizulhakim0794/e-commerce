@@ -1,16 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  PhotoIcon,
-  StarIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
+import { PhotoIcon, StarIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 import { ratingService } from "@/helper/services/rating.service";
 import { useApi } from "@/hooks/useApi";
 import { useStore } from "@/store/StoreProvider";
 import type { Product, Rating } from "@/types";
+import Loading from "./Loading";
 
 type RatingModalProps = {
   product: Product | null;
@@ -48,12 +45,16 @@ export default function RatingModal({
             null)
           : null;
 
-      setExistingRating(ownRating);
-      setRating(ownRating?.rating ?? 0);
-      setComment(ownRating?.comment ?? "");
-      setPhoto(null);
-      setPhotoPreview(null);
-      setIsLoading(false);
+      console.log(result?.data?.photo_url);
+
+      if (result.success && result.data) {
+        setExistingRating(ownRating);
+        setRating(ownRating?.rating ?? 0);
+        setComment(ownRating?.comment ?? "");
+        setPhoto(ownRating?.photo_url);
+        setPhotoPreview(ownRating?.photo_url);
+        setIsLoading(false);
+      }
     };
 
     void loadRating();
@@ -87,16 +88,8 @@ export default function RatingModal({
   if (!product) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="rating-modal-title"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
-      <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl dark:bg-slate-900 sm:p-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+      <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[28px] bg-white p-5 shadow-2xl dark:bg-slate-900 sm:p-6">
         <button
           type="button"
           onClick={onClose}
@@ -114,7 +107,9 @@ export default function RatingModal({
         </h2>
 
         {isLoading ? (
-          <p className="mt-8 text-sm text-slate-500">Loading your review...</p>
+          <div className="mx-auto max-w-xl px-5 py-32 text-center">
+            <Loading />
+          </div>
         ) : (
           <>
             <div className="mt-7 flex gap-1" aria-label="Choose a rating">

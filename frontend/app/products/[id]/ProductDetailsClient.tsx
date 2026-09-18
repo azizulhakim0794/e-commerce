@@ -38,7 +38,7 @@ export default function ProductDetails() {
   } | null>(null);
   const alertTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { handleRequest } = useApi();
-  const { user } = useStore();
+  const { user, addToCart } = useStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -103,6 +103,7 @@ export default function ProductDetails() {
       );
 
       if (result.success && result.data) {
+        addToCart(product, quantity);
         router.push("/cart");
       }
     };
@@ -204,20 +205,6 @@ export default function ProductDetails() {
               >
                 <StarIcon className="h-4 w-4" /> Rate and review
               </button>
-            ) : user && hasPurchased && ownRating ? (
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2.5 dark:border-emerald-900 dark:bg-emerald-950/30">
-                <span className="text-sm font-bold text-emerald-900 dark:text-emerald-200">
-                  Reviewed
-                </span>
-                <div className="flex items-center gap-0.5">
-                  {[1, 2, 3, 4, 5].map((value) => (
-                    <StarIcon
-                      key={value}
-                      className={`h-4 w-4 ${value <= ownRating.rating ? "fill-amber-400 text-amber-400" : "text-slate-300"}`}
-                    />
-                  ))}
-                </div>
-              </div>
             ) : null}
           </div>
         </div>
@@ -359,45 +346,46 @@ export default function ProductDetails() {
             </p>
             <h2 className="mt-2 text-3xl font-black">What people think</h2>
           </div>
-          <div className="space-y-4">
-            {ratings.length === 0 ? (
-              <p className="text-sm text-slate-500">No reviews yet.</p>
-            ) : (
-              ratings.map((rating) => (
-                <article
-                  key={rating.id}
-                  className="border-b border-slate-200 pb-5 dark:border-slate-800"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <p className="font-bold">{rating.user_name}</p>
-                    <div
-                      className="flex"
-                      aria-label={`${rating.rating} out of 5 stars`}
-                    >
-                      {[1, 2, 3, 4, 5].map((value) => (
-                        <StarIcon
-                          key={value}
-                          className={`h-4 w-4 ${value <= rating.rating ? "fill-amber-400 text-amber-400" : "text-slate-300"}`}
-                        />
-                      ))}
-                    </div>
+        </div>
+
+        <div className="space-y-4 mt-5">
+          {ratings.length === 0 ? (
+            <p className="text-sm text-slate-500">No reviews yet.</p>
+          ) : (
+            ratings.map((rating) => (
+              <article
+                key={rating.id}
+                className="border-b border-slate-200 pb-5 dark:border-slate-800"
+              >
+                <div className=" items-center justify-between gap-4">
+                  <p className="font-bold">{rating.user_name}</p>
+                  <div
+                    className="flex"
+                    aria-label={`${rating.rating} out of 5 stars`}
+                  >
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <StarIcon
+                        key={value}
+                        className={`h-4 w-4 ${value <= rating.rating ? "fill-amber-400 text-amber-400" : "text-slate-300"}`}
+                      />
+                    ))}
                   </div>
-                  {rating.comment && (
-                    <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                      {rating.comment}
-                    </p>
-                  )}
-                  {rating.photo_url && (
-                    <img
-                      src={rating.photo_url}
-                      alt={`Photo shared by ${rating.user_name}`}
-                      className="mt-4 h-28 w-28 rounded-xl object-cover"
-                    />
-                  )}
-                </article>
-              ))
-            )}
-          </div>
+                </div>
+                {rating.comment && (
+                  <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                    {rating.comment}
+                  </p>
+                )}
+                {rating.photo_url && (
+                  <img
+                    src={rating.photo_url}
+                    alt={`Photo shared by ${rating.user_name}`}
+                    className="mt-4 h-28 w-28 rounded-xl object-cover"
+                  />
+                )}
+              </article>
+            ))
+          )}
         </div>
       </section>
     </div>

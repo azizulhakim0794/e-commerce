@@ -17,7 +17,7 @@ export default function ProductCard({
     type?: "success" | "error" | "warning" | "info",
   ) => void;
 }) {
-  const { user } = useStore();
+  const { user, addToCart } = useStore();
   const { handleRequest } = useApi();
 
   const handleCartUpdate = async (product_id: string) => {
@@ -32,6 +32,7 @@ export default function ProductCard({
     });
 
     if (result.success) {
+      addToCart(product);
       onAlert?.("Product added to cart.", "success");
     } else {
       onAlert?.("Unable to add this product to cart.", "error");

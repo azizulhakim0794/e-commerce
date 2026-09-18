@@ -74,8 +74,8 @@ export default function OrdersPage() {
       <h1 className="mt-2 text-4xl font-black">Your orders.</h1>
 
       {isLoading ? (
-        <div className="mt-10 rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900">
-          Loading your orders...
+        <div>
+          <Loading />
         </div>
       ) : orders.length === 0 ? (
         <div className="mt-10 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">

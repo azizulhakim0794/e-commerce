@@ -10,6 +10,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 from schemas.rating import RatingCreate, RatingResponse, RatingUpdate
 from models import Order, OrderItem, Rating, Product
+from services import image_service
+from services.order import _build_order_response
 from core.config import settings
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
@@ -46,6 +48,7 @@ async def create_rating(
             Order.items.any(OrderItem.product_id == product.id),
         )
     )
+
     has_delivered_order = any(
         _build_order_response(order).status == "delivered"
         for order in orders_result.scalars().all()
@@ -65,13 +68,19 @@ async def create_rating(
     )
     rating = existing_result.scalar_one_or_none()
 
-    photo_url = await _save_photo(photo) if photo else None
+    photo_url = None
+
+    if photo:
+        uploaded_image = await image_service.upload_image(
+            file=photo, folder="ecommerce/ratings"
+        )
+        photo_url = uploaded_image["url"]
 
     if rating:
         rating.rating = rating_data.rating
         rating.comment = rating_data.comment
         if photo_url:
-            _remove_photo(rating.photo_url)
+            image_service.delete_image(rating.photo_url)
             rating.photo_url = photo_url
     else:
         rating = Rating(
@@ -141,12 +150,23 @@ async def update_rating(
             status_code=status.HTTP_404_NOT_FOUND, detail="Rating not found"
         )
 
-    photo_url = await _save_photo(photo) if photo else None
+    # photo_url = await _save_photo(photo) if photo else None
     rating.rating = rating_data.rating
     rating.comment = rating_data.comment
-    if photo_url:
-        _remove_photo(rating.photo_url)
+
+    photo_url = None
+
+    if photo:
+        uploaded_image = await image_service.upload_image(
+            file=photo, folder="ecommerce/ratings"
+        )
+        photo_url = uploaded_image["url"]
         rating.photo_url = photo_url
+
+    # if photo_url:
+    #     _remove_photo(rating.photo_url)
+    #     rating.photo_url = photo_url
+
     await db.commit()
 
     product_result = await db.execute(
@@ -171,33 +191,3 @@ async def _refresh_product_summary(db: AsyncSession, product: Product) -> None:
     average, count = summary.one()
     product.rating = round(float(average or 0), 2)
     product.reviews = int(count)
-
-
-async def _save_photo(photo: UploadFile) -> str:
-    extension = ALLOWED_PHOTO_TYPES.get(photo.content_type or "")
-    if not extension:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Review photo must be a JPEG, PNG, or WebP image",
-        )
-
-    contents = await photo.read(settings.max_upload_size_bytes + 1)
-    if len(contents) > settings.max_upload_size_bytes:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail="Review photo is too large",
-        )
-
-    MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
-    filename = f"{uuid4()}{extension}"
-    (MEDIA_ROOT / filename).write_bytes(contents)
-    return f"/media/reviews/{filename}"
-
-
-def _remove_photo(photo_url: str | None) -> None:
-    if not photo_url:
-        return
-
-    photo_path = MEDIA_ROOT / Path(photo_url).name
-    if photo_path.exists():
-        photo_path.unlink()

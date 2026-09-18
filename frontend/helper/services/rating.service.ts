@@ -2,8 +2,8 @@ import api from "../api";
 import { Rating, RatingInput } from "@/types";
 
 export const ratingService = {
-    getByProductId: async (productId: string): Promise<Rating[]> => {
-        const { data } = await api.get<Rating[]>(`/rating/${productId}`);
+    getByProductId: async (productId: string): Promise<Rating> => {
+        const { data } = await api.get<Rating>(`/rating/${productId}`);
         return data;
     },
 

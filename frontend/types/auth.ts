@@ -3,7 +3,7 @@ export interface User {
     name: string;
     username: string;
     email: string;
-    image_file?: string | null;
+    profile_pic?: string | null;
     cart_quantity?:number;
     phone_number?:string
 }

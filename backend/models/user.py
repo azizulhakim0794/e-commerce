@@ -17,7 +17,6 @@ class User(Base):
 
     username: Mapped[str] = mapped_column(
         String(50),
-        unique=True,
         nullable=False,
         index=True,
     )
@@ -29,7 +28,7 @@ class User(Base):
         index=True,
     )
 
-    image_file: Mapped[str | None] = mapped_column(
+    profile_pic: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
     )

@@ -47,10 +47,10 @@ export default function Navbar() {
     }
   };
 
-  const profileImage = user?.image_file
-    ? user.image_file.startsWith("http")
-      ? user.image_file
-      : `${ENV.API_BASE_URL?.replace(/\/api\/v1\/?$/, "")}${user.image_file}`
+  const profileImage = user?.profile_pic
+    ? user.profile_pic.startsWith("http")
+      ? user.profile_pic
+      : `${ENV.API_BASE_URL?.replace(/\/api\/v1\/?$/, "")}${user.profile_pic}`
     : null;
   return (
     <>

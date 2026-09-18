@@ -37,7 +37,7 @@ async def create_user(db: DBSession, user: UserCreate):
         email=user.email,
         username=user.username,
         password_hash=password_hash,
-        image_file=DEFAULT_PROFILE_IMAGE,
+        profile_pic=DEFAULT_PROFILE_IMAGE,
     )
 
     db.add(new_user)

@@ -150,12 +150,23 @@ async def update_rating(
             status_code=status.HTTP_404_NOT_FOUND, detail="Rating not found"
         )
 
-    photo_url = await _save_photo(photo) if photo else None
+    # photo_url = await _save_photo(photo) if photo else None
     rating.rating = rating_data.rating
     rating.comment = rating_data.comment
-    if photo_url:
-        _remove_photo(rating.photo_url)
+
+    photo_url = None
+
+    if photo:
+        uploaded_image = await image_service.upload_image(
+            file=photo, folder="ecommerce/ratings"
+        )
+        photo_url = uploaded_image["url"]
         rating.photo_url = photo_url
+
+    # if photo_url:
+    #     _remove_photo(rating.photo_url)
+    #     rating.photo_url = photo_url
+
     await db.commit()
 
     product_result = await db.execute(

@@ -39,7 +39,7 @@ export const authService = {
             id: string;
             username: string;
             email: string;
-            image_file?: string | null;
+            profile_pic?: string | null;
         }>("/users/me");
 
         return {
@@ -47,7 +47,7 @@ export const authService = {
             name: data.username,
             username: data.username,
             email: data.email,
-            image_file: data.image_file,
+            profile_pic: data.profile_pic,
         };
     },
 

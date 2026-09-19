@@ -4,6 +4,7 @@ export interface User {
     username: string;
     email: string;
     profile_pic?: string | null;
+    is_admin?: boolean;
     cart_quantity?:number;
     phone_number?:string
 }

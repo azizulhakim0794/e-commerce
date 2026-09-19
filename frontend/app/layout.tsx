@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import StorefrontShell from "../components/StorefrontShell";
 import { StoreProvider } from "../store/StoreProvider";
 
 export const metadata: Metadata = {
@@ -14,9 +13,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className="h-full antialiased">
       <body>
         <StoreProvider>
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
+          <StorefrontShell>{children}</StorefrontShell>
         </StoreProvider>
       </body>
     </html>

@@ -40,6 +40,7 @@ export const authService = {
             username: string;
             email: string;
             profile_pic?: string | null;
+            is_admin?: boolean;
         }>("/users/me");
 
         return {
@@ -48,6 +49,7 @@ export const authService = {
             username: data.username,
             email: data.email,
             profile_pic: data.profile_pic,
+            is_admin: data.is_admin,
         };
     },
 

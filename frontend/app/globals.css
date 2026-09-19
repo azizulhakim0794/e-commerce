@@ -28,3 +28,18 @@ body {
 * {
   box-sizing: border-box;
 }
+
+.admin-input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  padding: 0.75rem 0.875rem;
+  font-weight: 500;
+  outline: none;
+}
+
+.admin-input:focus {
+  border-color: #1b665d;
+  box-shadow: 0 0 0 3px #d9ebe4;
+}

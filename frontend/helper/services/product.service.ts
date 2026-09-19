@@ -1,8 +1,13 @@
-import { CartResponse, Product } from "@/types";
+import { CartResponse, Product,CreateProductType } from "@/types";
 import api from "../api";
 
 
 export const product_service = {
+
+    save_product: async(product_data:CreateProductType):Promise<CreateProductType> =>{
+        const {data} = await api.post<Product>("/products", product_data)
+        return data;
+    },
     get_products: async (): Promise<Product[]> => {
         const { data } = await api.get<Product[]>("/products");
         return data;

@@ -44,6 +44,13 @@ class User(Base):
         nullable=False,
     )
 
+    is_admin: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        server_default="0",
+        nullable=False,
+    )
+
     is_verified: Mapped[bool] = mapped_column(
         Boolean,
         default=False,

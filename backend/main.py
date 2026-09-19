@@ -14,6 +14,7 @@ from routers.cart import router as cart_router
 from routers.address import router as address_router
 from routers.order import router as order_router
 from routers.rating import router as rating_router
+from routers.admin import router as admin_router
 
 
 @asynccontextmanager
@@ -31,6 +32,16 @@ async def lifespan(_: FastAPI):
             if "photo_url" not in rating_columns:
                 sync_conn.execute(
                     text("ALTER TABLE ratings ADD COLUMN photo_url VARCHAR")
+                )
+
+            user_columns = {
+                column["name"] for column in inspect(sync_conn).get_columns("users")
+            }
+            if "is_admin" not in user_columns:
+                sync_conn.execute(
+                    text(
+                        "ALTER TABLE users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0"
+                    )
                 )
 
         await conn.run_sync(migrate_sqlite_schema)
@@ -97,6 +108,12 @@ app.include_router(
     rating_router,
     prefix=f"{API_PREFIX}/rating",
     tags=["Ratings"],
+)
+
+app.include_router(
+    admin_router,
+    prefix=f"{API_PREFIX}/admin",
+    tags=["Admin"],
 )
 
 

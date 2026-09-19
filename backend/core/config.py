@@ -8,7 +8,8 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
     )
 
-    database_url: str = "sqlite+aiosqlite:///./ecommerce.db"
+    # database_url: str = "sqlite+aiosqlite:///./ecommerce.db"
+    database_url: str
 
     cloudinary_cloud_name: str
     cloudinary_api_key: str

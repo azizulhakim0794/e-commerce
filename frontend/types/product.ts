@@ -1,17 +1,21 @@
-export interface Product {
-    id: string;
+export interface Product extends CreateProductType {
+  id: string;
+  originalPrice?: number | null;
+  original_price?: number | null;
+  rating: number;
+  reviews: number;
+}
+
+export interface CreateProductType {
     name: string;
     description: string;
     price: number;
-    originalPrice?: number | null;
     original_price?: number | null;
     badge?: string;
     category: string;
-    specs?: string[];
+    specs: string[];
     stock: number;
     image?: string | null;
-    rating: number;
-    reviews: number;
 }
 
 // export interface CartItem extends Product {

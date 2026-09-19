@@ -28,6 +28,7 @@ class UserPublic(BaseModel):
     id: UUID
     username: str
     profile_pic: str | None = None
+    is_admin: bool = False
 
 
 class UserPrivate(UserPublic):

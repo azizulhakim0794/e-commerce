@@ -1,3 +1,5 @@
+from core.config import settings
+
 # from sqlalchemy.ext.asyncio import (
 #     AsyncSession,
 #     async_sessionmaker,
@@ -37,11 +39,11 @@ from sqlalchemy.ext.asyncio import (
 
 from sqlalchemy.orm import DeclarativeBase
 
-SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./ecommerce.db"
+# SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./ecommerce.db"
 
 
 engine = create_async_engine(
-    SQLALCHEMY_DATABASE_URL,
+    settings.database_url,
 )
 
 

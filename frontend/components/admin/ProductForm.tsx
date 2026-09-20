@@ -50,6 +50,16 @@ export default function ProductForm({ product }: { product?: Product }) {
     if (result.success && result.data) {
       console.log(form, specs);
       setSaved(true);
+      setForm({
+        name: "",
+        category: "",
+        price: 0,
+        stock: 0,
+        description: "",
+        image: "",
+        specs: [],
+        badge: "",
+      });
     }
   };
 

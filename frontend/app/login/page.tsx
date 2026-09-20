@@ -6,14 +6,16 @@ import { FormEvent, useState } from "react";
 
 import { authService } from "@/helper/services/auth.service";
 import { useStore } from "../../store/StoreProvider";
+import { useApi } from "@/hooks/useApi";
 
 export default function LoginPage() {
   const router = useRouter();
   const { setUser } = useStore();
   const [error, setError] = useState("");
+  const { handleRequest } = useApi();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const email = String(data.get("email") || "").trim();
@@ -24,23 +26,20 @@ export default function LoginPage() {
       return;
     }
 
-    try {
-      setError("");
-      setIsSubmitting(true);
+    setError("");
+    setIsSubmitting(true);
 
-      await authService.login({ email, password });
-      const currentUser = await authService.getMe();
-
-      setUser(currentUser);
-      router.push("/profile");
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Unable to sign in right now.";
-      setError(message);
-    } finally {
-      setIsSubmitting(false);
+    const reponse = await handleRequest(authService.login, { email, password });
+    if (reponse.success) {
     }
-  }
+
+    const responsuser = await handleRequest(authService.getMe);
+    if (responsuser.success && responsuser.data) {
+      setUser(responsuser.data);
+
+      router.push(`${responsuser?.data.is_admin ? "/admin" : "/profile"}`);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-md px-5 py-20 lg:py-28">

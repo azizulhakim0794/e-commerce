@@ -30,7 +30,7 @@ export default function AdminProductsPage() {
         description="Review inventory and keep the catalog polished."
         action={
           <Link
-            href="/admin/products/new"
+            href="/admin/create-product"
             className="flex items-center justify-center gap-2 rounded-xl bg-[#102d2a] px-4 py-3 text-sm font-black text-white hover:bg-[#1b4a44]"
           >
             <PlusIcon className="h-5 w-5" /> Add product
@@ -81,7 +81,7 @@ export default function AdminProductsPage() {
                       {product.category}
                     </td>
                     <td className="px-6 py-4 text-sm font-black">
-                      ${product.price.toFixed(2)}
+                      ${product.price}
                     </td>
                     <td className="px-6 py-4">
                       <span

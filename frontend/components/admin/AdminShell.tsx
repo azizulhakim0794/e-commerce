@@ -19,7 +19,7 @@ import { useStore } from "../../store/StoreProvider";
 
 const navigation = [
   { href: "/admin", label: "Dashboard", icon: ChartBarIcon },
-  { href: "/admin/products/new", label: "Add product", icon: PlusIcon },
+  { href: "/admin/create-product", label: "Add product", icon: PlusIcon },
   { href: "/admin/products", label: "Product list", icon: ArchiveBoxIcon },
   { href: "/admin/orders", label: "Orders", icon: RectangleStackIcon },
   { href: "/admin/users", label: "Users", icon: UserGroupIcon },
@@ -82,6 +82,7 @@ export default function AdminShell({
           {navigation.map(({ href, label, icon: Icon }) => {
             const active =
               href === "/admin" ? pathname === href : pathname.startsWith(href);
+            console.log(active);
             return (
               <Link
                 key={href}

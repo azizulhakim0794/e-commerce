@@ -1,5 +1,5 @@
 from uuid import UUID
-
+from datetime import datetime
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
@@ -33,6 +33,13 @@ class UserPublic(BaseModel):
 
 class UserPrivate(UserPublic):
     email: EmailStr
+
+
+class UserList(UserPrivate):
+    created_at: datetime
+    how_many_orders_placed: int
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserUpdate(BaseModel):

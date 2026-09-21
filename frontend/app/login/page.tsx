@@ -12,7 +12,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { setUser } = useStore();
   const [error, setError] = useState("");
-  const { handleRequest } = useApi();
+  const { handleRequest, isLoading } = useApi();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -31,13 +31,12 @@ export default function LoginPage() {
 
     const reponse = await handleRequest(authService.login, { email, password });
     if (reponse.success) {
-    }
+      const responsuser = await handleRequest(authService.getMe);
+      if (responsuser.success && responsuser.data) {
+        setUser(responsuser.data);
 
-    const responsuser = await handleRequest(authService.getMe);
-    if (responsuser.success && responsuser.data) {
-      setUser(responsuser.data);
-
-      router.push(`${responsuser?.data.is_admin ? "/admin" : "/profile"}`);
+        router.push(`${responsuser?.data.is_admin ? "/admin" : "/profile"}`);
+      }
     }
   };
 
@@ -66,10 +65,10 @@ export default function LoginPage() {
         </label>
         {error && <p className="text-sm font-bold text-rose-600">{error}</p>}
         <button
-          disabled={isSubmitting}
+          disabled={isLoading}
           className="rounded-full bg-slate-950 px-5 py-3.5 text-sm font-bold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-white dark:text-slate-950"
         >
-          {isSubmitting ? "Signing in..." : "Sign in"}
+          {isLoading ? "Signing in..." : "Sign in"}
         </button>
       </form>
       <p className="mt-7 text-center text-sm text-slate-500">

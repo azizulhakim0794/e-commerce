@@ -3,7 +3,7 @@ from typing import Annotated
 from db.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from services import auth as auth_service
-from schemas.auth import UserCreate, UserPrivate, UserLogin, LoginResponse
+from schemas.auth import UserCreate, UserPrivate, UserLogin, LoginResponse, UserList
 from models.user import User
 from core.security import CurrentUser
 
@@ -25,6 +25,11 @@ async def login_with_token(response: Response, db: DBSession, user_data: UserLog
 @router.get("/me", response_model=UserPrivate)
 async def get_current_user(current_user: CurrentUser):
     return current_user
+
+
+@router.get("", response_model=list[UserList])
+async def get_users(db: DBSession, current_user: CurrentUser):
+    return await auth_service.get_users(db, current_user)
 
 
 @router.post("/logout", response_model=LoginResponse)

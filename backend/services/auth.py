@@ -3,9 +3,11 @@ from typing import Annotated
 from fastapi import HTTPException, status, Depends, Response
 from db.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.auth import UserCreate, UserLogin
+from schemas.auth import UserCreate, UserLogin, UserList
 from core.config import settings
+from core.security import CurrentUser
 from models.user import User
+from models.order import Order
 from datetime import timedelta
 
 from core.security import (
@@ -45,6 +47,29 @@ async def create_user(db: DBSession, user: UserCreate):
     await db.refresh(new_user)
 
     return new_user
+
+
+async def get_users(
+    db: DBSession,
+    current_user: CurrentUser,
+) -> list[UserList]:
+
+    result = await db.execute(
+        select(User, func.count(Order.id).label("how_many_orders_placed"))
+        .outerjoin(Order, Order.user_id == User.id)
+        .where(User.id != current_user.id)
+        .group_by(User.id)
+    )
+
+    rows = result.all()
+
+    return [
+        UserList(
+            **user.__dict__,
+            how_many_orders_placed=order_count,
+        )
+        for user, order_count in rows
+    ]
 
 
 async def login_with_token(

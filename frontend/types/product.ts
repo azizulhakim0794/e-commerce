@@ -7,25 +7,25 @@ export interface Product extends CreateProductType {
 }
 
 export interface CreateProductType {
-    name: string;
-    description: string;
-    price: number;
-    original_price?: number | null;
-    badge?: string;
-    category: string;
-    specs: string[];
-    stock: number;
-    image?: string | null;
+  name: string;
+  description: string;
+  price: number;
+  original_price?: number | null;
+  badge?: string;
+  category: string;
+  specs: string[];
+  stock: number;
+  image?: string | null;
 }
 
-// export interface CartItem extends Product {
-//     quantity: number;
-// }
+export interface CartItem extends Product {
+  quantity: number;
+}
 
 export interface CartItem {
-  id: string;          // CartItem ID from backend
-  product: Product;    // Product information
-  quantity: number;    // How many the user wants
+  id: string; // CartItem ID from backend
+  product: Product; // Product information
+  quantity: number; // How many the user wants
 }
 
 export interface CartResponse {

@@ -4,7 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import get_db
 
 # from schemas.cart import CartItemCreate, CartItemUpdate, CartResponse
-from schemas.order import CreateOrderFromCart, BuyNowRequest, OrderResponse
+from schemas.order import (
+    CreateOrderFromCart,
+    BuyNowRequest,
+    OrderResponse,
+    AllOrderResponse,
+)
 from core.security import CurrentUser
 from services import order as order_service
 from uuid import UUID
@@ -30,8 +35,16 @@ async def create_order_buy_now(
 
 
 @router.get("", response_model=list[OrderResponse])
-async def update_cart_item_quantity(
+async def get_order_product(
     db: DBSession,
     current_user: CurrentUser,
 ):
     return await order_service.get_order_product(db, current_user)
+
+
+@router.get("/admin", response_model=list[AllOrderResponse])
+async def get_order_products(
+    db: DBSession,
+    current_user: CurrentUser,
+):
+    return await order_service.get_order_products(db, current_user)

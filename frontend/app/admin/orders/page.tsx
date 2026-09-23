@@ -1,3 +1,4 @@
+import OrderList from "@/components/admin/OrderList";
 import AdminPageHeader from "../../../components/admin/AdminPageHeader";
 
 const orders = [
@@ -15,7 +16,10 @@ export default function AdminOrdersPage() {
         title="Orders"
         description="Track the customer orders that keep the business moving."
       />
-      <div className="mt-8 overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+      <OrderList />
+
+      {/* <div className="mt-8 overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table className="w-full min-w-[700px] text-left">
           <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
             <tr>
@@ -44,7 +48,7 @@ export default function AdminOrdersPage() {
             ))}
           </tbody>
         </table>
-      </div>
+      </div> */}
     </div>
   );
 }

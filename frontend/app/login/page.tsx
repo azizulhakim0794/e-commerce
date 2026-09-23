@@ -37,6 +37,8 @@ export default function LoginPage() {
 
         router.push(`${responsuser?.data.is_admin ? "/admin" : "/profile"}`);
       }
+    } else {
+      setError("Invalid credentials");
     }
   };
 

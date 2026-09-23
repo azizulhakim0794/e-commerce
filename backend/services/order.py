@@ -8,8 +8,15 @@ from sqlalchemy.orm import selectinload
 
 from core.security import CurrentUser
 from db.database import get_db
-from models import Address, Cart, CartItem, Product, Order, OrderItem
-from schemas.order import BuyNowRequest, CreateOrderFromCart, OrderResponse
+from models import Address, Cart, CartItem, Product, Order, OrderItem, User
+from schemas.order import (
+    BuyNowRequest,
+    CreateOrderFromCart,
+    OrderResponse,
+    AllOrderResponse,
+    OrderedProductResponse,
+)
+from schemas.auth import UserPrivate
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
 
@@ -24,7 +31,9 @@ def _normalize_datetime(value: datetime | None) -> datetime | None:
     return value.astimezone(timezone.utc)
 
 
-def _build_order_response(order: Order) -> OrderResponse:
+def _build_order_response(
+    order: Order,
+) -> OrderResponse:
     items = list(order.items)
 
     created_at = _normalize_datetime(
@@ -42,6 +51,41 @@ def _build_order_response(order: Order) -> OrderResponse:
         delivery_at=delivery_at,
         status=status,
     )
+
+
+def _build_order_response_for_admin(
+    order: Order, user: UserPrivate
+) -> AllOrderResponse:
+
+    items = [
+        OrderedProductResponse(
+            id=item.id,
+            product_id=item.product_id,
+            quantity=item.quantity,
+            # price=item.price,
+            user_details=user,
+        )
+        for item in order.items
+    ]
+
+    # items = list(order.items, user)
+
+    created_at = _normalize_datetime(
+        min((item.created_at for item in items), default=datetime.now(timezone.utc))
+    )
+
+    delivery_at = created_at + timedelta(hours=4)
+    now = datetime.now(timezone.utc)
+
+    status = "delivered" if now >= delivery_at else "processing"
+
+    if user:
+        return AllOrderResponse(
+            order_items=items,
+            created_at=created_at,
+            delivery_at=delivery_at,
+            status=status,
+        )
 
 
 async def _validate_address(
@@ -219,4 +263,35 @@ async def get_order_product(
 
     orders = result.scalars().all()
 
-    return [_build_order_response(order) for order in orders]
+    data = []
+
+    for order in orders:
+        data.append(_build_order_response(order))
+
+    return data
+
+
+async def get_order_products(
+    db: DBSession, current_user: CurrentUser
+) -> list[AllOrderResponse]:
+
+    if current_user.is_admin:
+        result = await db.execute(
+            select(Order).options(
+                selectinload(Order.items).selectinload(OrderItem.product)
+            )
+        )
+
+        orders = result.scalars().all()
+
+        result = await db.execute(select(User).where(User.id == Order.user_id))
+
+        user = result.scalars().first()
+
+        data = []
+        for order in orders:
+            data.append(_build_order_response_for_admin(order, user))
+        return data
+
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)

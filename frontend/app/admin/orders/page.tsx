@@ -5,7 +5,7 @@ const orders = [
   ["#NS-1048", "Maya Chen", "$248.00", "Processing", "Today, 10:42"],
   ["#NS-1047", "Theo Martin", "$96.50", "Ready to ship", "Today, 09:18"],
   ["#NS-1046", "Ari Williams", "$412.00", "Delivered", "Yesterday"],
-  ["#NS-1045", "June Park", "$72.00", "Delivered", "Yesterday"],
+  // ["#NS-1045", "June Park", "$72.00", "Delivered", "Yesterday"],
 ];
 
 export default function AdminOrdersPage() {

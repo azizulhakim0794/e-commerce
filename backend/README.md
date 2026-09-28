@@ -34,3 +34,12 @@ transitions SQLite3 to PostgreSQL
 3. install the uv add asyncpg
 4. and create the database connection URL like
    (postgresql+asyncpg://postgres:your_password@localhost:5432/ecommerce)
+
+docker setup
+
+1. create a dockerfile
+2. docker build -t ecommerce-backend . (for create the docker images)
+   (dockeraze the database first.)
+3. docker network create ecommerce-network (create the netwok)
+4. docker run -d --name ecommerce-postgres --network ecommerce-network -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=console.log -e POSTGRES_DB=ecommerce postgres
+5. docker run -d --name ecommerce-backend-container(give a container name) --network ecommerce-network(network name) --env-file .env -p 8000:8000 ecommerce-backend(image name)

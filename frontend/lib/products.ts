@@ -5,5 +5,5 @@ export const categories = [
   { name: "Accessories", icon: "◇", color: "bg-sky-100 text-sky-800" },
   { name: "Home & Living", icon: "⌂", color: "bg-lime-100 text-lime-900" },
   { name: "Beauty", icon: "✦", color: "bg-fuchsia-100 text-fuchsia-800" },
-  { name: "Sports", icon: "＋", color: "bg-orange-100 text-orange-800" },
+  //   { name: "Sports", icon: "＋", color: "bg-orange-100 text-orange-800" },
 ];

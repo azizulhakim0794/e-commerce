@@ -1,0 +1,73 @@
+services:
+  ecommerce-postgres:
+    image: postgres:16-alpine
+    container_name: ecommerce-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: console.log
+      POSTGRES_DB: ecommerce
+    ports:
+      - "5432:5432"
+    volumes:
+      - ecommerce-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ecommerce"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - ecommerce-network
+
+  ecommerce-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ecommerce-backend-container
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:console.log@ecommerce-postgres:5432/ecommerce
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ecommerce-media-data:/app/media
+    depends_on:
+      ecommerce-postgres:
+        condition: service_healthy
+    networks:
+      ecommerce-network:
+        aliases:
+          - ecommerce-backend
+          - backend
+
+  ecommerce-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ecommerce-frontend-container
+    restart: unless-stopped
+    env_file:
+      - ./frontend/.env
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:3000/api/v1
+      INTERNAL_BACKEND_URL: http://ecommerce-backend:8000
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - ecommerce-backend
+    networks:
+      - ecommerce-network
+
+volumes:
+  ecommerce-postgres-data:
+  ecommerce-media-data:
+
+networks:
+  ecommerce-network:
+    driver: bridge

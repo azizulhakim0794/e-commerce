@@ -1,113 +1,102 @@
 import axios from "axios";
-import type {
-    AxiosRequestConfig,
-    InternalAxiosRequestConfig,
-} from "axios";
+import type { AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
 
 import { ENV } from "../../config/env";
 
 const CSRF_COOKIE_NAME = "csrftoken";
 
-const UNSAFE_METHODS = new Set([
-    "post",
-    "put",
-    "patch",
-    "delete",
-]);
+const UNSAFE_METHODS = new Set(["post", "put", "patch", "delete"]);
 
 const getCsrfToken = (): string | null => {
-    if (typeof document === "undefined") {
-        return null;
-    }
+  if (typeof document === "undefined") {
+    return null;
+  }
 
-    const match = document.cookie.match(
-        new RegExp(`(?:^|;\\s*)${CSRF_COOKIE_NAME}=([^;]*)`)
-    );
+  const match = document.cookie.match(
+    new RegExp(`(?:^|;\\s*)${CSRF_COOKIE_NAME}=([^;]*)`),
+  );
 
-    return match ? decodeURIComponent(match[1]) : null;
+  return match ? decodeURIComponent(match[1]) : null;
 };
-
 const api = axios.create({
-    baseURL: ENV.API_BASE_URL,
-    withCredentials: true,
-    headers: {
-        "Content-Type": "application/json",
-    },
+  baseURL: ENV.API_BASE_URL,
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-api.interceptors.request.use(
-    (config: InternalAxiosRequestConfig) => {
-        const method = config.method?.toLowerCase();
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const method = config.method?.toLowerCase();
 
-        if (method && UNSAFE_METHODS.has(method)) {
-            const csrfToken = getCsrfToken();
+  if (method && UNSAFE_METHODS.has(method)) {
+    const csrfToken = getCsrfToken();
 
-            if (csrfToken) {
-                config.headers["X-CSRFToken"] = csrfToken;
-            }
-        }
-
-        return config;
+    if (csrfToken) {
+      config.headers["X-CSRFToken"] = csrfToken;
     }
-);
+  }
+
+  return config;
+});
 
 export const GET = async <T>(
-    url: string,
-    config?: AxiosRequestConfig
+  url: string,
+  config?: AxiosRequestConfig,
 ): Promise<T> => {
-    const response = await api.get<T>(url, config);
-    return response.data;
+  const response = await api.get<T>(url, config);
+  return response.data;
 };
 
 export const POST = async <T>(
-    url: string,
-    data?: unknown,
-    config?: AxiosRequestConfig
+  url: string,
+  data?: unknown,
+  config?: AxiosRequestConfig,
 ): Promise<T> => {
-    const response = await api.post<T>(url, data, config);
-    return response.data;
+  const response = await api.post<T>(url, data, config);
+  return response.data;
 };
 
 export const PUT = async <T>(
-    url: string,
-    data?: unknown,
-    config?: AxiosRequestConfig
+  url: string,
+  data?: unknown,
+  config?: AxiosRequestConfig,
 ): Promise<T> => {
-    const response = await api.put<T>(url, data, config);
-    return response.data;
+  const response = await api.put<T>(url, data, config);
+  return response.data;
 };
 
 export const PATCH = async <T>(
   url: string,
   data?: unknown,
-  config?: AxiosRequestConfig
+  config?: AxiosRequestConfig,
 ): Promise<T> => {
   const response = await api.patch<T>(url, data, config);
   return response.data;
 };
 
 export const DELETE = async <T>(
-    url: string,
-    config?: AxiosRequestConfig
+  url: string,
+  config?: AxiosRequestConfig,
 ): Promise<T> => {
-    const response = await api.delete<T>(url, config);
-    return response.data;
+  const response = await api.delete<T>(url, config);
+  return response.data;
 };
 
 export const UPLOAD = async <T>(
-    url: string,
-    formData: FormData,
-    config?: AxiosRequestConfig
+  url: string,
+  formData: FormData,
+  config?: AxiosRequestConfig,
 ): Promise<T> => {
-    const response = await api.post<T>(url, formData, {
-        ...config,
-        headers: {
-            ...config?.headers,
-            "Content-Type": "multipart/form-data",
-        },
-    });
+  const response = await api.post<T>(url, formData, {
+    ...config,
+    headers: {
+      ...config?.headers,
+      "Content-Type": "multipart/form-data",
+    },
+  });
 
-    return response.data;
+  return response.data;
 };
 
 export default api;

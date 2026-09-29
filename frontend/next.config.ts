@@ -1,5 +1,10 @@
 import type { NextConfig } from "next";
 
+const BACKEND_URL =
+  process.env.INTERNAL_BACKEND_URL ||
+  process.env.BACKEND_URL ||
+  "http://localhost:8000";
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -13,15 +18,15 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:8000/api/:path*",
+        destination: `${BACKEND_URL}/api/:path*`,
       },
       {
         source: "/media/:path*",
-        destination: "http://localhost:8000/media/:path*",
+        destination: `${BACKEND_URL}/media/:path*`,
       },
       {
         source: "/static/:path*",
-        destination: "http://localhost:8000/static/:path*",
+        destination: `${BACKEND_URL}/static/:path*`,
       },
     ];
   },

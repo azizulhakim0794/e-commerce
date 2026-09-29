@@ -113,7 +113,7 @@ async def login_with_token(
         httponly=True,
         secure=False,
         samesite="lax",
-        max_age=settings.access_token_expire_minutes * 60,
+        max_age=settings.access_token_expire_minutes * 180,
     )
 
     return {

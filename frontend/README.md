@@ -43,3 +43,5 @@ docker setup for mobiles
 
 1. docker build -t ecommerce-frontend .
 2. docker run -d --name ecommerce-frontend-container(container name) --network ecommerce-network(network name) -p 3000:3000 ecommerce-frontend(image name)
+
+docker run -d --name ecommerce-frontend-container --network ecommerce-network --restart unless-stopped -e NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api/v1 -e INTERNAL_BACKEND_URL=http://ecommerce-backend:8000 -e HOSTNAME=0.0.0.0 -e PORT=3000 -p 3000:3000 ecommerce-frontend

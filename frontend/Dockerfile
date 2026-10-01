@@ -12,7 +12,9 @@ COPY . .
 
 ENV HOSTNAME="0.0.0.0"
 ENV PORT=3000
+ENV WATCHPACK_POLLING=true
+ENV CHOKIDAR_USEPOLLING=true
 
 EXPOSE 3000
 
-CMD ["npm", "run", "dev", "--", "-H", "0.0.0.0"]
+CMD ["npm", "run", "dev", "--", "--webpack", "-H", "0.0.0.0"]

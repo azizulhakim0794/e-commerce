@@ -62,7 +62,8 @@ def _build_order_response_for_admin(
             id=item.id,
             product_id=item.product_id,
             quantity=item.quantity,
-            # price=item.price,
+            price=item.unit_price,
+            created_at=item.created_at,
             user_details=user,
         )
         for item in order.items
@@ -284,13 +285,19 @@ async def get_order_products(
 
         orders = result.scalars().all()
 
-        result = await db.execute(select(User).where(User.id == Order.user_id))
-
-        user = result.scalars().first()
+        # Collect unique user IDs across all orders
+        user_ids = {order.user_id for order in orders}
+        user_result = await db.execute(select(User).where(User.id.in_(user_ids)))
+        users_by_id = {u.id: u for u in user_result.scalars().all()}
 
         data = []
         for order in orders:
-            data.append(_build_order_response_for_admin(order, user))
+            user = users_by_id.get(order.user_id)
+            if user is None:
+                continue
+            response = _build_order_response_for_admin(order, user)
+            if response is not None:
+                data.append(response)
         return data
 
     else:

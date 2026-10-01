@@ -96,7 +96,7 @@ docker run -d \
    docker build -t ecommerce-backend ./backend
    ```
 
-2. **Run backend container**:
+2. **Run backend container (with hot reload & bind mount)**:
    ```bash
    docker run -d \
      --name ecommerce-backend-container \
@@ -106,7 +106,10 @@ docker run -d \
      --env-file ./backend/.env \
      -e DATABASE_URL=postgresql+asyncpg://postgres:console.log@ecommerce-postgres:5432/ecommerce \
      -e FRONTEND_URL=http://localhost:3000 \
+     -e WATCHFILES_FORCE_POLLING=true \
      -p 8000:8000 \
+     -v ${PWD}/backend:/app \
+     -v /app/.venv \
      -v ecommerce-media-data:/app/media \
      ecommerce-backend
    ```
@@ -120,7 +123,7 @@ docker run -d \
    docker build -t ecommerce-frontend ./frontend
    ```
 
-2. **Run frontend container**:
+2. **Run frontend container (with hot reload & bind mount)**:
    ```bash
    docker run -d \
      --name ecommerce-frontend-container \
@@ -131,7 +134,12 @@ docker run -d \
      -e INTERNAL_BACKEND_URL=http://ecommerce-backend:8000 \
      -e HOSTNAME=0.0.0.0 \
      -e PORT=3000 \
+     -e WATCHPACK_POLLING=true \
+     -e CHOKIDAR_USEPOLLING=true \
      -p 3000:3000 \
+     -v ${PWD}/frontend:/app \
+     -v /app/node_modules \
+     -v /app/.next \
      ecommerce-frontend
    ```
 

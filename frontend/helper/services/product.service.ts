@@ -1,4 +1,4 @@
-import { CartResponse, Product, CreateProductType, Order } from "@/types";
+import { CartResponse, Product, CreateProductType, AllOrderResponse } from "@/types";
 import api from "../api";
 
 export const product_service = {
@@ -13,8 +13,8 @@ export const product_service = {
     return data;
   },
 
-  get_ordered_products: async (): Promise<Order> => {
-    const { data } = await api.get<Order>("/orders/admin");
+  get_ordered_products: async (): Promise<AllOrderResponse[]> => {
+    const { data } = await api.get<AllOrderResponse[]>("/orders/admin");
     return data;
   },
 

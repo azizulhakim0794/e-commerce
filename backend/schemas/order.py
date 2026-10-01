@@ -2,13 +2,8 @@ from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, Field
-from schemas.cart import CartItemResponse
 from schemas.auth import UserPrivate
 from decimal import Decimal
-
-# from schemas.product import ProductRespons
-
-# from schemas.auth import UserPrivate
 
 
 class CreateOrderFromCart(BaseModel):
@@ -33,23 +28,15 @@ class OrderResponse(BaseModel):
 
 class OrderedProductResponse(BaseModel):
     id: UUID
+    product_id: UUID
     quantity: int
-    order_items: list[CartItemResponse] = Field(default_factory=list)
-    user_details: UserPrivate
-    created_at: datetime
     price: Decimal
+    created_at: datetime
     user_details: UserPrivate
 
     model_config = {"from_attributes": True}
 
 
-# class OrderedProductResponse(BaseModel):
-#     id: UUID
-#     product_id: UUID
-#     quantity: int
-#     price: Decimal
-#     created_at: datetime
-#     user_details: UserResponse
 
 
 class AllOrderResponse(BaseModel):

@@ -18,6 +18,7 @@ class ProductCreate(BaseModel):
 
 
 class ProductUpdate(BaseModel):
+    id: UUID
     name: str | None = None
     description: str | None = None
     price: Decimal | None = Field(default=None, gt=0, le=100000)

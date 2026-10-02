@@ -1,4 +1,9 @@
-import { CartResponse, Product, CreateProductType, AllOrderResponse } from "@/types";
+import {
+  CartResponse,
+  Product,
+  CreateProductType,
+  AllOrderResponse,
+} from "@/types";
 import api from "../api";
 
 export const product_service = {
@@ -20,6 +25,19 @@ export const product_service = {
 
   get_product: async (id: string): Promise<Product> => {
     const { data } = await api.get<Product>(`/products/${id}/`);
+    return data;
+  },
+
+  update_product: async (product_data: Product): Promise<Product> => {
+    const { data } = await api.patch<Product>(
+      `/products/${product_data.id}`,
+      product_data,
+    );
+    return data;
+  },
+
+  delete_product: async (product_id: string): Promise<Product> => {
+    const { data } = await api.delete<Product>(`/products/${product_id}`);
     return data;
   },
 

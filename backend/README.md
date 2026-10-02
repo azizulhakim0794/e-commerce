@@ -49,3 +49,7 @@ docker setup
 6. 1. MSYS_NO_PATHCONV=1 docker run -d --name ecommerce-backend-container(give a container name) --network ecommerce-network(network name) --env-file .env -p 8000:8000 ecommerce-backend(image name)
 
 docker run -d --name ecommerce-backend-container --network ecommerce-network --network-alias ecommerce-backend --restart unless-stopped --env-file .env -e DATABASE_URL=postgresql+asyncpg://postgres:console.log@ecommerce-postgres:5432/ecommerce -e FRONTEND_URL=http://localhost:3000 -p 8000:8000 -v ecommerce-media-data:/app/media ecommerce-backend
+
+# To run the dataBase in terminal
+
+docker exec -it ecommerce-postgres psql -U postgres -d ecommerce

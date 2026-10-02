@@ -17,6 +17,10 @@ from routers.address import router as address_router
 from routers.order import router as order_router
 from routers.rating import router as rating_router
 from routers.admin import router as admin_router
+from core.logging_config import setup_logging
+from middleware.request_logging import RequestLoggingMiddleware
+
+setup_logging()
 
 
 @asynccontextmanager
@@ -117,6 +121,9 @@ app.include_router(
     prefix=f"{API_PREFIX}/admin",
     tags=["Admin"],
 )
+
+
+app.add_middleware(RequestLoggingMiddleware)
 
 
 @app.middleware("http")

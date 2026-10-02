@@ -4,6 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 from schemas.auth import UserPrivate
 from decimal import Decimal
+from schemas.cart import CartItemResponse
 
 
 class CreateOrderFromCart(BaseModel):
@@ -37,8 +38,6 @@ class OrderedProductResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
-
-
 class AllOrderResponse(BaseModel):
     order_items: list[OrderedProductResponse] = Field(default_factory=list)
     created_at: datetime
@@ -46,3 +45,6 @@ class AllOrderResponse(BaseModel):
     status: str = "processing"
 
     model_config = {"from_attributes": True}
+
+
+# OrderResponse.model_rebuild()

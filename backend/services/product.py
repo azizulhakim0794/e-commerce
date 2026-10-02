@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import HTTPException, status, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.product import Product
-from schemas.product import ProductCreate
+from schemas.product import ProductCreate, ProductUpdate
 from typing import Annotated
 from db.database import get_db
 
@@ -44,3 +44,58 @@ async def get_product(db: DBSession, product_id: UUID) -> Product:
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
     )
+
+
+# async def update_product(db: DBSession, product_data: ProductUpdate) -> Product:
+#     result = await db.execute(select(Product).where(Product.id == product_data.id))
+#     existing_product = result.scalar_one_or_none()
+#     if not existing_product:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
+#         )
+
+#     update_data = product_data.model_dump(exclude_unset=True)
+
+#     for field, value in update_data.items():
+#         setattr(existing_product, field, value)
+
+#     await db.commit()
+#     await db.refresh(existing_product)
+
+#     return existing_product
+
+
+async def update_product(db: DBSession, product_data: ProductUpdate) -> Product:
+    result = await db.execute(select(Product).where(Product.id == product_data.id))
+
+    existing_product = result.scalar_one_or_none()
+
+    if not existing_product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
+        )
+
+    update_data = product_data.model_dump(exclude_unset=True, exclude={"id"})
+
+    for field, value in update_data.items():
+        setattr(existing_product, field, value)
+
+    await db.commit()
+    await db.refresh(existing_product)
+
+    return existing_product
+
+
+async def delete_product(db: DBSession, product_id: UUID):
+    result = await db.execute(select(Product).where(Product.id == product_id))
+
+    existing_product = result.scalar_one_or_none()
+
+    if not existing_product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
+        )
+
+    await db.delete(existing_product)
+    await db.commit()
+    return existing_product

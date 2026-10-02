@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import {
   PencilSquareIcon,
   PlusIcon,
@@ -13,8 +14,30 @@ import { Product } from "../../../types";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const deleteProduct = async () => {
+    if (!productToDelete) return;
+
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      await product_service.delete_product(productToDelete.id);
+      setProducts((current) =>
+        current.filter((item) => item.id !== productToDelete.id),
+      );
+      setProductToDelete(null);
+    } catch {
+      setDeleteError("The product could not be deleted. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   useEffect(() => {
     void product_service
       .get_products()
@@ -24,6 +47,58 @@ export default function AdminProductsPage() {
   }, []);
   return (
     <div className="mx-auto max-w-[1400px]">
+      <Dialog
+        open={productToDelete !== null}
+        onClose={() => {
+          if (!deleting) {
+            setProductToDelete(null);
+            setDeleteError("");
+          }
+        }}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-slate-950/40" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <DialogPanel className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <DialogTitle className="text-lg font-black text-[#102d2a]">
+              Delete product?
+            </DialogTitle>
+            <p className="mt-2 text-sm text-slate-600">
+              Are you sure you want to delete{" "}
+              <span className="font-bold text-slate-900">
+                {productToDelete?.name}
+              </span>
+              ? This action cannot be undone.
+            </p>
+            {deleteError && (
+              <p role="alert" className="mt-4 text-sm font-semibold text-rose-600">
+                {deleteError}
+              </p>
+            )}
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setProductToDelete(null);
+                  setDeleteError("");
+                }}
+                disabled={deleting}
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={deleteProduct}
+                disabled={deleting}
+                className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-bold text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {deleting ? "Deleting..." : "Yes, delete"}
+              </button>
+            </div>
+          </DialogPanel>
+        </div>
+      </Dialog>
       <AdminPageHeader
         eyebrow="Catalog"
         title="Product list"
@@ -104,11 +179,10 @@ export default function AdminProductsPage() {
                         </Link>
                         <button
                           type="button"
-                          onClick={() =>
-                            setProducts((current) =>
-                              current.filter((item) => item.id !== product.id),
-                            )
-                          }
+                          onClick={() => {
+                            setDeleteError("");
+                            setProductToDelete(product);
+                          }}
                           className="rounded-lg p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600"
                           aria-label={`Delete ${product.name}`}
                         >

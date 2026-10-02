@@ -5,6 +5,7 @@ import { Product } from "@/types";
 import MultiTextInput from "./MultiTextInput";
 import { useApi } from "@/hooks/useApi";
 import { product_service } from "@/helper/services/product.service";
+import { useRouter } from "next/navigation";
 
 const emptyProduct = {
   name: "",
@@ -20,8 +21,8 @@ const emptyProduct = {
 };
 
 export default function ProductForm({ product }: { product?: Product }) {
-  const [saved, setSaved] = useState(false);
-  const [specs, setSpecs] = useState<string[]>([]);
+  const [specs, setSpecs] = useState<string[]>(product ? product.specs : []);
+  const router = useRouter();
   const { handleRequest } = useApi();
 
   const [form, setForm] = useState(
@@ -33,8 +34,10 @@ export default function ProductForm({ product }: { product?: Product }) {
           stock: product.stock,
           description: product.description,
           image: product.image ?? "",
-          specs: specs,
+          specs: product.specs ?? [],
           badge: product.badge ?? "",
+          rating: product.rating ?? 0,
+          reviews: product.reviews ?? 0,
         }
       : emptyProduct,
   );
@@ -45,11 +48,33 @@ export default function ProductForm({ product }: { product?: Product }) {
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const result = await handleRequest(product_service.save_product, form);
+    const data = {
+      badge: form.badge,
+      category: form.category,
+      description: form.description,
+      image: form.image,
+      name: form.name,
+      price: form.price,
+      specs: specs,
+      stock: form.stock,
+      rating: form.rating,
+      reviews: form.reviews,
+    };
+    // const result_save = await handleRequest(product_service.save_product, data);
 
+    let result;
+
+    if (product) {
+      result = await handleRequest(product_service.update_product, {
+        ...data,
+        id: product ? product.id : "",
+      });
+    } else {
+      result = await handleRequest(product_service.save_product, data);
+    }
     if (result.success && result.data) {
       console.log(form, specs);
-      setSaved(true);
+      // setSaved(true);
       setForm({
         name: "",
         category: "",
@@ -59,7 +84,11 @@ export default function ProductForm({ product }: { product?: Product }) {
         image: "",
         specs: [],
         badge: "",
+        rating: 0,
+        reviews: 0,
       });
+      setSpecs([]);
+      router.push("/admin/products");
     }
   };
 
@@ -161,14 +190,8 @@ export default function ProductForm({ product }: { product?: Product }) {
           type="submit"
           className="rounded-xl bg-[#102d2a] px-5 py-3 text-sm font-black text-white hover:bg-[#1b4a44]"
         >
-          {product ? "Save changes" : "Create product"}
+          {product ? "Update product" : "Create product"}
         </button>
-        {saved && (
-          <p className="text-sm font-bold text-emerald-700">
-            Saved locally for this preview. Backend product actions are coming
-            later.
-          </p>
-        )}
       </div>
     </form>
   );

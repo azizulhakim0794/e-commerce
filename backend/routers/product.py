@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from schemas.product import ProductResponse, ProductCreate
+from schemas.product import ProductResponse, ProductCreate, ProductUpdate
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 from db.database import get_db
@@ -25,3 +25,13 @@ async def get_products(db: DBSession):
 @router.get("/{product_id}", response_model=ProductResponse)
 async def get_product(db: DBSession, product_id: UUID):
     return await product_service.get_product(db, product_id)
+
+
+@router.patch("/{product_id}", response_model=ProductResponse)
+async def update_product(db: DBSession, product_data: ProductUpdate):
+    return await product_service.update_product(db, product_data)
+
+
+@router.delete("/{product_id}", response_model=ProductResponse)
+async def delete_product(db: DBSession, product_id: UUID):
+    return await product_service.delete_product(db, product_id)

@@ -84,10 +84,13 @@ export default function ProductForm({ product }: { product?: Product }) {
             onChange={(e) => update("category", e.target.value)}
             className="admin-input"
           >
-            <option>Home</option>
-            <option>Apparel</option>
-            <option>Travel</option>
-            <option>Objects</option>
+            <option>Electronics</option>
+            <option>Accessories</option>
+            <option>Clothing</option>
+            <option>Shoes</option>
+            <option>Beauty</option>
+            <option>Sports</option>
+            <option>Home & Living</option>
           </select>
         </label>
         <label className="grid gap-2 text-sm font-bold">

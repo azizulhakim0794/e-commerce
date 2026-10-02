@@ -5,10 +5,12 @@ import AdminPageHeader from "../../../components/admin/AdminPageHeader";
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState([
-    "Home",
-    "Apparel",
-    "Travel",
-    "Objects",
+    "Electronics",
+    "Accessories",
+    "Home & Living",
+    "Beauty",
+    "Sports",
+    "Clothing",
   ]);
   const [newCategory, setNewCategory] = useState("");
   return (

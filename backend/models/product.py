@@ -2,10 +2,7 @@ from db.database import Base
 from uuid import UUID, uuid4
 from decimal import Decimal
 
-# from models.cart import CartItem
 from sqlalchemy import (
-    DateTime,
-    ForeignKey,
     String,
     Text,
     Numeric,
@@ -38,10 +35,6 @@ class Product(Base):
     stock: Mapped[int] = mapped_column(Integer, default=0)
 
     specs: Mapped[list[str]] = mapped_column(JSON)
-
-    # ratings: Mapped["Product"] = relationship(
-    #     back_populates="product",
-    # )
 
     ratings: Mapped[list["Rating"]] = relationship(back_populates="product")
 

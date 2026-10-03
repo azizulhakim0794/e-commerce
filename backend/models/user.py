@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, UniqueConstraint
+from sqlalchemy import String, Boolean, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db.database import Base
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
@@ -67,4 +67,7 @@ class User(Base):
         back_populates="user",
     )
 
-    # __table_args__ = (UniqueConstraint("email"),)
+    phone_number: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+    )

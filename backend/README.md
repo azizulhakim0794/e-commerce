@@ -35,6 +35,37 @@ transitions SQLite3 to PostgreSQL
 4. and create the database connection URL like
    (postgresql+asyncpg://postgres:your_password@localhost:5432/ecommerce)
 
+## Database migrations
+
+Run Alembic from the repository root with the backend project environment:
+
+```powershell
+uv run --project backend alembic -c backend/alembic.ini revision --autogenerate -m "initial schema"
+uv run --project backend alembic -c backend/alembic.ini upgrade head
+```
+
+For the initial revision, temporarily point `DATABASE_URL` at a separate,
+empty database using the same database dialect as the application. Generate
+the revision there, review and commit the generated file in `migrations/versions/`,
+then run `upgrade head` against that empty database to verify the baseline.
+
+To adopt an existing database whose tables were created by the application,
+restore `DATABASE_URL` to that database and run:
+
+```powershell
+uv run --project backend alembic -c backend/alembic.ini stamp head
+```
+
+`stamp head` records the revision without executing its DDL, so only use it
+after verifying the existing schema matches the baseline. For subsequent
+schema changes, generate a new revision, review it, and apply it to each
+database with `upgrade head`.
+
+Alembic reads `DATABASE_URL` from the backend `.env` file (or the process
+environment). The configuration resolves the backend import path and `.env`
+location relative to these files, so the commands work from the repository
+root.
+
 <!-- need to create a request logger for check who is calling the API -->
 
 docker setup

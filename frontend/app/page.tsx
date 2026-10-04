@@ -19,6 +19,7 @@ export default function Home() {
     message: string;
   } | null>(null);
   const alertTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasLoadedProducts = useRef(false);
 
   const showAlert = (message: string, type: AlertType = "warning") => {
     if (alertTimeoutRef.current) {
@@ -30,6 +31,9 @@ export default function Home() {
   };
 
   useEffect(() => {
+    if (hasLoadedProducts.current) return;
+    hasLoadedProducts.current = true;
+
     const loadProducts = async () => {
       try {
         const result = await product_service.get_products();

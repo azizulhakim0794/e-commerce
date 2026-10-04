@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import {
   PencilSquareIcon,
@@ -19,6 +19,7 @@ export default function AdminProductsPage() {
   const [deleteError, setDeleteError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const hasLoadedProducts = useRef(false);
 
   const deleteProduct = async () => {
     if (!productToDelete) return;
@@ -39,6 +40,9 @@ export default function AdminProductsPage() {
   };
 
   useEffect(() => {
+    if (hasLoadedProducts.current) return;
+    hasLoadedProducts.current = true;
+
     void product_service
       .get_products()
       .then(setProducts)

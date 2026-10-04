@@ -33,16 +33,7 @@ async def test_get_users(client, db_session):
 
     data = response.json()
 
-    data = response.json()
+    assert len(data) == 4
 
     for user in data:
         assert user["is_admin"] is False
-
-    # assert isinstance(data, list)
-    # assert len(data) == 1
-
-    # returned_user = data[0]
-    # print(data)
-
-    # assert returned_user["email"] == "test@example.com"
-    # assert returned_user["is_admin"] == False

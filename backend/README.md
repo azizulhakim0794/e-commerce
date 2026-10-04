@@ -84,3 +84,13 @@ docker run -d --name ecommerce-backend-container --network ecommerce-network --n
 # To run the dataBase in terminal
 
 docker exec -it ecommerce-postgres psql -U postgres -d ecommerce
+
+# when i add a migrate the options for local meshin
+
+uv run alembic revision --autogenerate -m "add gender to user"
+
+# In docker
+
+1. docker compose exec ecommerce-backend uv run alembic revision --autogenerate -m "add gender to user"
+
+2. docker compose exec ecommerce-backend uv run alembic upgrade head

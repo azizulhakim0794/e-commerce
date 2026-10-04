@@ -71,3 +71,8 @@ class User(Base):
         String(20),
         nullable=True,
     )
+
+    gender: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+    )

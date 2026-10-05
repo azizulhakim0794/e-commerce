@@ -9,6 +9,7 @@ import { product_service } from "@/helper/services/product.service";
 import { CartItem, CartResponse } from "@/types";
 import OrderCheckoutModal from "@/components/OrderCheckoutModal";
 import Loading from "@/components/Loading";
+import { isValidImageSource } from "@/lib/image";
 
 export default function CartPage() {
   const [cartProducts, setCartProducts] = useState<CartResponse[] | null>(null);
@@ -103,81 +104,85 @@ export default function CartPage() {
       ) : (
         <div className="mt-10 grid gap-12 lg:grid-cols-[1fr_360px]">
           <div className="divide-y divide-slate-200 dark:divide-slate-800">
-            {cartItems.map((item) => (
-              <div key={item.id} className="flex gap-4 py-6 first:pt-0">
-                <div className="relative h-28 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-100">
-                  {item.product.image ? (
-                    <Image
-                      src={item.product.image}
-                      alt={item.product.name}
-                      fill
-                      sizes="96px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-slate-200 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                      No image
-                    </div>
-                  )}
-                </div>
-                <div className="flex min-w-0 flex-1 flex-col justify-between">
-                  <div className="flex justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-teal-700">
-                        {item.product.category}
+            {cartItems.map((item) => {
+              const hasValidCartImage = isValidImageSource(item.product.image);
+
+              return (
+                <div key={item.id} className="flex gap-4 py-6 first:pt-0">
+                  <div className="relative h-28 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+                    {hasValidCartImage ? (
+                      <Image
+                        src={item.product.image ?? ""}
+                        alt={item.product.name}
+                        fill
+                        sizes="96px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-slate-200 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                        No image
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex min-w-0 flex-1 flex-col justify-between">
+                    <div className="flex justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-teal-700">
+                          {item.product.category}
+                        </p>
+                        <h2 className="mt-1 truncate font-bold">
+                          {item.product.name}
+                        </h2>
+                      </div>
+                      <p className="font-bold">
+                        ${item.product.price * item.quantity}
                       </p>
-                      <h2 className="mt-1 truncate font-bold">
-                        {item.product.name}
-                      </h2>
                     </div>
-                    <p className="font-bold">
-                      ${item.product.price * item.quantity}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center rounded-full border border-slate-300 dark:border-slate-700">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center rounded-full border border-slate-300 dark:border-slate-700">
+                        <button
+                          onClick={() =>
+                            handleUpdateCartsProduct(
+                              item.id,
+                              item.quantity - 1,
+                              item.product.stock,
+                              "remove",
+                            )
+                          }
+                          className="p-2"
+                          aria-label="Decrease quantity"
+                        >
+                          <MinusIcon className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="w-7 text-center text-xs font-bold">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() =>
+                            handleUpdateCartsProduct(
+                              item.id,
+                              item.quantity + 1,
+                              item.product.stock,
+                              "add",
+                            )
+                          }
+                          className="p-2"
+                          aria-label="Increase quantity"
+                        >
+                          <PlusIcon className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                       <button
-                        onClick={() =>
-                          handleUpdateCartsProduct(
-                            item.id,
-                            item.quantity - 1,
-                            item.product.stock,
-                            "remove",
-                          )
-                        }
-                        className="p-2"
-                        aria-label="Decrease quantity"
+                        onClick={() => hanldeRemoveProductFromCart(item.id)}
+                        className="flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-rose-600"
                       >
-                        <MinusIcon className="h-3.5 w-3.5" />
-                      </button>
-                      <span className="w-7 text-center text-xs font-bold">
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() =>
-                          handleUpdateCartsProduct(
-                            item.id,
-                            item.quantity + 1,
-                            item.product.stock,
-                            "add",
-                          )
-                        }
-                        className="p-2"
-                        aria-label="Increase quantity"
-                      >
-                        <PlusIcon className="h-3.5 w-3.5" />
+                        <TrashIcon className="h-4 w-4" /> Remove
                       </button>
                     </div>
-                    <button
-                      onClick={() => hanldeRemoveProductFromCart(item.id)}
-                      className="flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-rose-600"
-                    >
-                      <TrashIcon className="h-4 w-4" /> Remove
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <aside className="h-fit rounded-2xl bg-slate-100 p-6 dark:bg-slate-900">
             <h2 className="text-lg font-black">Order summary</h2>

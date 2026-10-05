@@ -6,6 +6,7 @@ import { Product } from "@/types/product";
 import { useStore } from "../store/StoreProvider";
 import { product_service } from "@/helper/services/product.service";
 import { useApi } from "@/hooks/useApi";
+import { isValidImageSource } from "@/lib/image";
 
 export default function ProductCard({
   product,
@@ -42,15 +43,18 @@ export default function ProductCard({
   const discount = product.originalPrice
     ? Math.round((1 - product.price / product.originalPrice) * 100)
     : 0;
+  const imageSrc = product.image?.trim();
+  const hasValidImage = isValidImageSource(imageSrc);
+
   return (
     <article className="group min-w-0">
       <Link
         href={`/products/${product.id}`}
         className="relative block aspect-[4/4.5] overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800"
       >
-        {product.image ? (
+        {hasValidImage ? (
           <Image
-            src={product.image}
+            src={imageSrc}
             alt={product.name}
             loading="lazy"
             fill

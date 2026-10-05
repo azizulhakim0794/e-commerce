@@ -20,14 +20,10 @@ export interface CreateProductType {
   image?: string | null;
 }
 
-export interface CartItem extends Product {
-  quantity: number;
-}
-
 export interface CartItem {
-  id: string; // CartItem ID from backend
-  product: Product; // Product information
-  quantity: number; // How many the user wants
+  id: string;
+  product: Product;
+  quantity: number;
 }
 
 export interface CartResponse {
@@ -36,17 +32,17 @@ export interface CartResponse {
   items: CartItem[];
 }
 
+interface OrderItem {
+  id: string;
+  product_id: string;
+  quantity: number;
+  product: Product;
+}
+
 export interface Order {
   user_detials: User;
   order_items: OrderItem[];
   created_at: string;
   delivery_at: string;
   status: string;
-}
-
-export interface OrderItem {
-  id: string;
-  product_id: string;
-  quantity: number;
-  product: Product;
 }

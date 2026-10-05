@@ -21,6 +21,7 @@ import OrderCheckoutModal from "@/components/OrderCheckoutModal";
 import RatingModal from "@/components/RatingModal";
 import Alert from "@/components/Alart";
 import Loading from "@/components/Loading";
+import { isValidImageSource } from "@/lib/image";
 
 export default function ProductDetails() {
   const params = useParams<{ id: string }>();
@@ -164,6 +165,8 @@ export default function ProductDetails() {
   const ownRating = ratings.find(
     (rating) => rating.user_name === user?.username,
   );
+  const productImageSrc = product.image?.trim();
+  const hasValidProductImage = isValidImageSource(productImageSrc);
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-16">
@@ -182,9 +185,9 @@ export default function ProductDetails() {
       <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-20">
         <div>
           <div className="relative aspect-square overflow-hidden rounded-3xl bg-slate-100 dark:bg-slate-800">
-            {product.image ? (
+            {hasValidProductImage ? (
               <Image
-                src={product.image}
+                src={productImageSrc}
                 alt={product.name}
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"

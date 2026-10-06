@@ -191,3 +191,38 @@ async def _refresh_product_summary(db: AsyncSession, product: Product) -> None:
     average, count = summary.one()
     product.rating = round(float(average or 0), 2)
     product.reviews = int(count)
+
+
+async def delete_rating(
+    db: DBSession,
+    current_user: CurrentUser,
+    rating_id: UUID,
+) -> None:
+    result = await db.execute(
+        select(Rating).where(
+            Rating.id == rating_id,
+            Rating.user_id == current_user.id,
+        )
+    )
+    rating = result.scalar_one_or_none()
+
+    if not rating:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Rating not found"
+        )
+
+    product_result = await db.execute(
+        select(Product).where(Product.id == rating.product_id)
+    )
+    product = product_result.scalar_one_or_none()
+
+    # Delete the photo from cloud storage if present
+    if rating.photo_url:
+        image_service.delete_image(rating.photo_url)
+
+    await db.delete(rating)
+    await db.commit()
+
+    if product:
+        await _refresh_product_summary(db, product)
+        await db.commit()

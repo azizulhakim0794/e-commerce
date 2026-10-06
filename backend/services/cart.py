@@ -10,11 +10,11 @@ from models.product import Product
 from models.cart import Cart, CartItem
 from core.security import CurrentUser
 
-DBSesstion = Annotated[AsyncSession, Depends(get_db)]
+DBSession = Annotated[AsyncSession, Depends(get_db)]
 
 
 async def save_product_into_cart(
-    db: DBSesstion, current_user: CurrentUser, product_data: CartItemCreate
+    db: DBSession, current_user: CurrentUser, product_data: CartItemCreate
 ) -> Cart:
     result = await db.execute(
         select(Product).where(Product.id == product_data.product_id)
@@ -24,7 +24,13 @@ async def save_product_into_cart(
 
     if not product:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="product is not fould"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
+        )
+
+    if product_data.quantity > product.stock:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Only {product.stock} unit(s) of '{product.name}' available in stock",
         )
 
     result = await db.execute(select(Cart).where(Cart.user_id == current_user.id))
@@ -73,18 +79,18 @@ async def save_product_into_cart(
     return result.scalar_one()
 
 
-async def get_cart_products(db: DBSesstion, current_user: CurrentUser) -> list[Cart]:
+async def get_cart_products(db: DBSession, current_user: CurrentUser) -> Cart | None:
     result = await db.execute(
         select(Cart)
         .options(selectinload(Cart.items).selectinload(CartItem.product))
         .where(Cart.user_id == current_user.id)
     )
 
-    return result.scalars().all()
+    return result.scalar_one_or_none()
 
 
 async def update_cart_item_quantity(
-    db: DBSesstion, current_user: CurrentUser, cart_data: CartItemUpdate
+    db: DBSession, current_user: CurrentUser, cart_data: CartItemUpdate
 ) -> Cart:
     result = await db.execute(
         select(CartItem)
@@ -114,7 +120,7 @@ async def update_cart_item_quantity(
     return result.scalar_one()
 
 
-async def delete_cart_item(db: DBSesstion, current_user: CurrentUser, cart_id: UUID):
+async def delete_cart_item(db: DBSession, current_user: CurrentUser, cart_id: UUID):
     result = await db.execute(
         select(CartItem)
         .join(Cart)

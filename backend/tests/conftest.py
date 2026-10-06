@@ -142,6 +142,7 @@ async def seed_user(db_session):
             email=resolved_email,
             password_hash=hash_password(password),
             profile_pic="/static/default-profile.svg",
+            is_admin=True,
         )
         db_session.add(user)
         await db_session.commit()
@@ -152,7 +153,7 @@ async def seed_user(db_session):
 
 @pytest_asyncio.fixture
 async def authenticated_client(client, seed_user):
-    email = f"{uuid4().hex}@example.com"
+    email = "admin@example.com"
     await seed_user(email=email, password="Password123")
 
     response = await client.post(

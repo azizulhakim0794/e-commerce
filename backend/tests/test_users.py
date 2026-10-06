@@ -11,6 +11,7 @@ async def test_get_users(client, db_session):
         email="admin@example.com",
         password_hash=hash_password("Password123"),
         profile_pic="/static/default-profile.svg",
+        is_admin=True,
     )
     other_user = User(
         username="regularuser",

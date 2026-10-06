@@ -17,6 +17,7 @@ class RatingUpdate(BaseModel):
 class RatingResponse(BaseModel):
     id: UUID
     product_id: UUID
+    user_id: UUID
     rating: int
     comment: str | None
     photo_url: str | None = None

@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
 from sqlalchemy import select
@@ -13,6 +14,7 @@ from schemas.order import (
     BuyNowRequest,
     CreateOrderFromCart,
     OrderResponse,
+    OrderItemResponse,
     AllOrderResponse,
     OrderedProductResponse,
 )
@@ -42,14 +44,25 @@ def _build_order_response(
     delivery_at = created_at + timedelta(hours=4)
     now = datetime.now(timezone.utc)
 
-    status = "delivered" if now >= delivery_at else "processing"
+    order_status = "delivered" if now >= delivery_at else "processing"
+
+    order_item_responses = [
+        OrderItemResponse(
+            id=item.id,
+            product_id=item.product_id,
+            quantity=item.quantity,
+            unit_price=item.unit_price,
+            product=item.product,
+        )
+        for item in items
+    ]
 
     return OrderResponse(
         id=order.id,
-        order_items=items,
+        order_items=order_item_responses,
         created_at=created_at,
         delivery_at=delivery_at,
-        status=status,
+        status=order_status,
     )
 
 
@@ -69,8 +82,6 @@ def _build_order_response_for_admin(
         for item in order.items
     ]
 
-    # items = list(order.items, user)
-
     created_at = _normalize_datetime(
         min((item.created_at for item in items), default=datetime.now(timezone.utc))
     )
@@ -78,15 +89,15 @@ def _build_order_response_for_admin(
     delivery_at = created_at + timedelta(hours=4)
     now = datetime.now(timezone.utc)
 
-    status = "delivered" if now >= delivery_at else "processing"
+    order_status = "delivered" if now >= delivery_at else "processing"
 
-    if user:
-        return AllOrderResponse(
-            order_items=items,
-            created_at=created_at,
-            delivery_at=delivery_at,
-            status=status,
-        )
+    return AllOrderResponse(
+        id=order.id,
+        order_items=items,
+        created_at=created_at,
+        delivery_at=delivery_at,
+        status=order_status,
+    )
 
 
 async def _validate_address(
@@ -302,3 +313,25 @@ async def get_order_products(
 
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+
+async def get_order_by_id(
+    db: DBSession,
+    current_user: CurrentUser,
+    order_id: UUID,
+) -> OrderResponse:
+    result = await db.execute(
+        select(Order)
+        .options(selectinload(Order.items).selectinload(OrderItem.product))
+        .where(Order.id == order_id, Order.user_id == current_user.id)
+    )
+
+    order = result.scalar_one_or_none()
+
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found",
+        )
+
+    return _build_order_response(order)

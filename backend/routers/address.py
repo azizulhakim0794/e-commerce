@@ -24,13 +24,14 @@ async def get_addresses(db: DBSession, current_user: CurrentUser):
     return await address_service.get_addresses(db, current_user)
 
 
-@router.patch("", response_model=AddressResponse)
+@router.patch("/{address_id}", response_model=AddressResponse)
 async def update_address(
-    db: DBSession, current_user: CurrentUser, address_data: AddressUpdate
+    db: DBSession, current_user: CurrentUser, address_id: UUID, address_data: AddressUpdate
 ):
+    address_data.id = address_id
     return await address_service.update_address(db, current_user, address_data)
 
 
-@router.delete("", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{address_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_address(db: DBSession, current_user: CurrentUser, address_id: UUID):
     return await address_service.delete_address(db, current_user, address_id)

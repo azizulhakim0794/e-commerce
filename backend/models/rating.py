@@ -71,4 +71,4 @@ class Rating(Base):
 
     @property
     def user_pic(self) -> str | None:
-        return None
+        return self.user.profile_pic if self.user else None

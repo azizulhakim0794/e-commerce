@@ -3,14 +3,13 @@ from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import get_db
 
-# from schemas.cart import CartItemCreate, CartItemUpdate, CartResponse
 from schemas.order import (
     CreateOrderFromCart,
     BuyNowRequest,
     OrderResponse,
     AllOrderResponse,
 )
-from core.security import CurrentUser
+from core.security import CurrentUser, AdminUser
 from services import order as order_service
 from uuid import UUID
 
@@ -43,8 +42,17 @@ async def get_order_product(
 
 
 @router.get("/admin", response_model=list[AllOrderResponse])
-async def get_order_products(
+async def get_all_orders_admin(
     db: DBSession,
-    current_user: CurrentUser,
+    current_user: AdminUser,
 ):
     return await order_service.get_order_products(db, current_user)
+
+
+@router.get("/{order_id}", response_model=OrderResponse)
+async def get_order_by_id(
+    db: DBSession,
+    current_user: CurrentUser,
+    order_id: UUID,
+):
+    return await order_service.get_order_by_id(db, current_user, order_id)

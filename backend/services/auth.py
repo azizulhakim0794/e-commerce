@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import HTTPException, status, Depends, Response
 from db.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.auth import UserCreate, UserLogin, UserList
+from schemas.auth import UserCreate, UserLogin, UserList, UserUpdate, ChangePassword
 from core.config import settings
 from core.security import CurrentUser
 from models.user import User
@@ -135,3 +135,47 @@ async def logout(response: Response):
 
 # async def get_current_user(current_user: CurrentUser):
 #     return current_user
+
+
+async def update_user(
+    db: DBSession,
+    current_user: CurrentUser,
+    user_data: UserUpdate,
+):
+    update_data = user_data.model_dump(exclude_unset=True)
+
+    if "email" in update_data:
+        result = await db.execute(
+            select(User).where(
+                func.lower(User.email) == update_data["email"].lower(),
+                User.id != current_user.id,
+            )
+        )
+        if result.scalars().first():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email address already in use",
+            )
+
+    for field, value in update_data.items():
+        setattr(current_user, field, value)
+
+    await db.commit()
+    await db.refresh(current_user)
+    return current_user
+
+
+async def change_password(
+    db: DBSession,
+    current_user: CurrentUser,
+    password_data: ChangePassword,
+):
+    if not verify_password(password_data.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+
+    current_user.password_hash = hash_password(password_data.new_password)
+    await db.commit()
+    return {"message": "Password changed successfully"}

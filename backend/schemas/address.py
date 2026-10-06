@@ -18,8 +18,17 @@ class AddressCreate(AddressBase):
     pass
 
 
-class AddressUpdate(AddressBase):
+class AddressUpdate(BaseModel):
     id: UUID
+    full_name: str | None = None
+    phone_number: str | None = None
+    address_type: str | None = None
+    address_line_1: str | None = None
+    address_line_2: str | None = None
+    city: str | None = None
+    state_or_division: str | None = None
+    postal_code: str | None = None
+    country: str | None = None
 
 
 class AddressResponse(AddressBase):

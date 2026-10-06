@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 from schemas.rating import RatingCreate, RatingResponse, RatingUpdate
 from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -52,3 +52,12 @@ async def update_rating(
     return await rating_service.update_rating(
         db, current_user, rating_id, rating_data, photo
     )
+
+
+@router.delete("/{rating_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_rating(
+    db: DBSession,
+    current_user: CurrentUser,
+    rating_id: UUID,
+):
+    return await rating_service.delete_rating(db, current_user, rating_id)

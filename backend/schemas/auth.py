@@ -29,6 +29,8 @@ class UserPublic(BaseModel):
     username: str
     profile_pic: str | None = None
     is_admin: bool = False
+    phone_number: str | None = None
+    gender: str | None = None
 
 
 class UserPrivate(UserPublic):
@@ -57,3 +59,16 @@ class UserUpdate(BaseModel):
         min_length=1,
         max_length=200,
     )
+    phone_number: str | None = Field(
+        default=None,
+        max_length=20,
+    )
+    gender: str | None = Field(
+        default=None,
+        max_length=20,
+    )
+
+
+class ChangePassword(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=8)

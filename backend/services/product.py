@@ -1,3 +1,4 @@
+from decimal import Decimal
 from sqlalchemy import select
 from uuid import UUID
 from fastapi import HTTPException, status, Depends
@@ -30,8 +31,33 @@ async def create_product(db: DBSession, product_data: ProductCreate) -> Product:
     return new_product
 
 
-async def get_products(db: DBSession) -> list[Product]:
-    result = await db.execute(select(Product))
+async def get_products(
+    db: DBSession,
+    category: str | None = None,
+    search: str | None = None,
+    min_price: float | None = None,
+    max_price: float | None = None,
+    page: int = 1,
+    limit: int = 20,
+) -> list[Product]:
+    query = select(Product)
+
+    if category:
+        query = query.where(Product.category.ilike(f"%{category}%"))
+
+    if search:
+        query = query.where(Product.name.ilike(f"%{search}%"))
+
+    if min_price is not None:
+        query = query.where(Product.price >= Decimal(str(min_price)))
+
+    if max_price is not None:
+        query = query.where(Product.price <= Decimal(str(max_price)))
+
+    offset = (page - 1) * limit
+    query = query.offset(offset).limit(limit)
+
+    result = await db.execute(query)
     products = result.scalars().all()
     return products
 
@@ -46,27 +72,10 @@ async def get_product(db: DBSession, product_id: UUID) -> Product:
     )
 
 
-# async def update_product(db: DBSession, product_data: ProductUpdate) -> Product:
-#     result = await db.execute(select(Product).where(Product.id == product_data.id))
-#     existing_product = result.scalar_one_or_none()
-#     if not existing_product:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
-#         )
-
-#     update_data = product_data.model_dump(exclude_unset=True)
-
-#     for field, value in update_data.items():
-#         setattr(existing_product, field, value)
-
-#     await db.commit()
-#     await db.refresh(existing_product)
-
-#     return existing_product
-
-
-async def update_product(db: DBSession, product_data: ProductUpdate) -> Product:
-    result = await db.execute(select(Product).where(Product.id == product_data.id))
+async def update_product(
+    db: DBSession, product_id: UUID, product_data: ProductUpdate
+) -> Product:
+    result = await db.execute(select(Product).where(Product.id == product_id))
 
     existing_product = result.scalar_one_or_none()
 
@@ -75,6 +84,7 @@ async def update_product(db: DBSession, product_data: ProductUpdate) -> Product:
             status_code=status.HTTP_404_NOT_FOUND, detail="Product not found"
         )
 
+    # Exclude 'id' if present in product_data so it can't overwrite the PK
     update_data = product_data.model_dump(exclude_unset=True, exclude={"id"})
 
     for field, value in update_data.items():

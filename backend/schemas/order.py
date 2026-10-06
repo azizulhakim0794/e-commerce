@@ -4,7 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 from schemas.auth import UserPrivate
 from decimal import Decimal
-from schemas.cart import CartItemResponse
+from schemas.product import ProductResponse
 
 
 class CreateOrderFromCart(BaseModel):
@@ -17,9 +17,21 @@ class BuyNowRequest(BaseModel):
     address_id: UUID
 
 
+class OrderItemResponse(BaseModel):
+    """Represents a single item within an order."""
+
+    id: UUID
+    product_id: UUID
+    quantity: int
+    unit_price: Decimal
+    product: ProductResponse
+
+    model_config = {"from_attributes": True}
+
+
 class OrderResponse(BaseModel):
     id: UUID
-    order_items: list[CartItemResponse] = Field(default_factory=list)
+    order_items: list[OrderItemResponse] = Field(default_factory=list)
     created_at: datetime | None = None
     delivery_at: datetime | None = None
     status: str = "processing"
@@ -39,12 +51,10 @@ class OrderedProductResponse(BaseModel):
 
 
 class AllOrderResponse(BaseModel):
+    id: UUID
     order_items: list[OrderedProductResponse] = Field(default_factory=list)
     created_at: datetime
     delivery_at: datetime
     status: str = "processing"
 
     model_config = {"from_attributes": True}
-
-
-# OrderResponse.model_rebuild()

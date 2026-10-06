@@ -20,7 +20,7 @@ async def save_product_into_cart(
     return await cart_service.save_product_into_cart(db, current_user, product_data)
 
 
-@router.get("", response_model=list[CartResponse])
+@router.get("", response_model=CartResponse | None)
 async def get_cart_products(db: DBSession, current_user: CurrentUser):
     return await cart_service.get_cart_products(db, current_user)
 

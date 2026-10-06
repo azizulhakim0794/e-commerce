@@ -167,3 +167,30 @@ async def authenticated_client(client, seed_user):
     assert response.json()["message"] == "access_token saved successfully"
 
     return client
+
+
+@pytest_asyncio.fixture
+async def test_address(authenticated_client):
+    create_response = await authenticated_client.post(
+        "/api/v1/address",
+        json={
+            "full_name": "Test User",
+            "phone_number": "01712345678",
+            "address_type": "home",
+            "address_line_1": "123 Test Street",
+            "address_line_2": "Apartment 4B",
+            "city": "Dhaka",
+            "state_or_division": "Dhaka",
+            "postal_code": "1207",
+            "country": "Bangladesh",
+        },
+    )
+
+    assert create_response.status_code == 200
+
+    data = create_response.json()
+
+    assert data["full_name"] == "Test User"
+    assert data["phone_number"] == "01712345678"
+    assert data["city"] == "Dhaka"
+    assert data["country"] == "Bangladesh"

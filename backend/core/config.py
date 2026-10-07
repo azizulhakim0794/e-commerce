@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     max_upload_size_bytes: int = 5 * 1024 * 1024
+    REDIS_URL: str = "redis://ecommerce-redis:6379/0"
 
     posts_per_page: int = 10
     reset_token_expire_minutes: int = 60

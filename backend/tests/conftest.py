@@ -9,10 +9,30 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.pool import StaticPool
 
 from core.security import hash_password
+from core.redis import get_redis
 from db.database import Base, get_db
 from main import app
 from models.product import Product
 from models.user import User
+
+
+class FakeRedis:
+    def __init__(self):
+        self.values = {}
+        self.cache_hits = 0
+
+    async def get(self, key):
+        if key != "products:list:version" and key in self.values:
+            self.cache_hits += 1
+        return self.values.get(key)
+
+    async def set(self, key, value, ex=None):
+        self.values[key] = value
+
+    async def incr(self, key):
+        value = int(self.values.get(key, "0")) + 1
+        self.values[key] = str(value)
+        return value
 
 
 @pytest_asyncio.fixture(scope="session")
@@ -46,11 +66,17 @@ async def db_session(test_db_engine) -> AsyncIterator[AsyncSession]:
 
 
 @pytest_asyncio.fixture
-async def client(db_session):
+async def fake_redis():
+    return FakeRedis()
+
+
+@pytest_asyncio.fixture
+async def client(db_session, fake_redis):
     async def override_get_db() -> AsyncIterator[AsyncSession]:
         yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_redis] = lambda: fake_redis
 
     transport = ASGITransport(app=app)
 

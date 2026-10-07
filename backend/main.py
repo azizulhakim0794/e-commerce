@@ -4,6 +4,7 @@ from pathlib import Path
 from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from redis.exceptions import RedisError
 from sqlalchemy import inspect, text, select
 from db.database import Base, engine, get_db
 from typing import Annotated
@@ -18,6 +19,7 @@ from routers.order import router as order_router
 from routers.rating import router as rating_router
 from routers.admin import router as admin_router
 from core.logging_config import setup_logging
+from core.redis import redis
 from middleware.request_logging import RequestLoggingMiddleware
 
 setup_logging()
@@ -25,33 +27,39 @@ setup_logging()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
 
-        def migrate_sqlite_schema(sync_conn):
-            if sync_conn.dialect.name != "sqlite":
-                return
+            def migrate_sqlite_schema(sync_conn):
+                if sync_conn.dialect.name != "sqlite":
+                    return
 
-            rating_columns = {
-                column["name"] for column in inspect(sync_conn).get_columns("ratings")
-            }
-            if "photo_url" not in rating_columns:
-                sync_conn.execute(
-                    text("ALTER TABLE ratings ADD COLUMN photo_url VARCHAR")
-                )
-
-            user_columns = {
-                column["name"] for column in inspect(sync_conn).get_columns("users")
-            }
-            if "is_admin" not in user_columns:
-                sync_conn.execute(
-                    text(
-                        "ALTER TABLE users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0"
+                rating_columns = {
+                    column["name"]
+                    for column in inspect(sync_conn).get_columns("ratings")
+                }
+                if "photo_url" not in rating_columns:
+                    sync_conn.execute(
+                        text("ALTER TABLE ratings ADD COLUMN photo_url VARCHAR")
                     )
-                )
 
-        await conn.run_sync(migrate_sqlite_schema)
-    yield
+                user_columns = {
+                    column["name"] for column in inspect(sync_conn).get_columns("users")
+                }
+                if "is_admin" not in user_columns:
+                    sync_conn.execute(
+                        text(
+                            "ALTER TABLE users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0"
+                        )
+                    )
+
+            await conn.run_sync(migrate_sqlite_schema)
+
+        await redis.ping()
+        yield
+    finally:
+        await redis.aclose()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -153,5 +161,12 @@ async def health_check(db: Annotated[AsyncSession, Depends(get_db)]):
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Database unavailable",
+        ) from exc
+    try:
+        await redis.ping()
+    except RedisError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Redis unavailable",
         ) from exc
     return {"status": "healthy"}

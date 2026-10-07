@@ -12,11 +12,25 @@ services:
     volumes:
       - ecommerce-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d ecommerce" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ecommerce"]
       interval: 5s
       timeout: 5s
       retries: 5
       start_period: 5s
+    networks:
+      - ecommerce-network
+
+  ecommerce-redis:
+    image: redis:7-alpine
+    container_name: ecommerce-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - ecommerce-network
 
@@ -31,6 +45,7 @@ services:
       - ./backend/.env
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:console.log@ecommerce-postgres:5432/ecommerce
+      REDIS_URL: redis://ecommerce-redis:6379/0
       FRONTEND_URL: http://localhost:3000
       WATCHFILES_FORCE_POLLING: "true"
     ports:
@@ -41,6 +56,8 @@ services:
       - ecommerce-media-data:/app/media
     depends_on:
       ecommerce-postgres:
+        condition: service_healthy
+      ecommerce-redis:
         condition: service_healthy
     networks:
       ecommerce-network:

@@ -6,21 +6,27 @@ from db.database import get_db
 from services import product as product_service
 from uuid import UUID
 from core.security import AdminUser
+from redis.asyncio import Redis
+from core.redis import get_redis
 
 router = APIRouter()
 
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
+RedisClient = Annotated[Redis, Depends(get_redis)]
 
 
 @router.post("", response_model=ProductResponse)
-async def create_product(db: DBSession, product_data: ProductCreate, _: AdminUser):
-    return await product_service.create_product(db, product_data)
+async def create_product(
+    db: DBSession, redis: RedisClient, product_data: ProductCreate, _: AdminUser
+):
+    return await product_service.create_product(db, redis, product_data)
 
 
 @router.get("", response_model=list[ProductResponse])
 async def get_products(
     db: DBSession,
+    redis: RedisClient,
     category: str | None = Query(default=None, description="Filter by category"),
     search: str | None = Query(default=None, description="Search by name"),
     min_price: float | None = Query(default=None, ge=0, description="Minimum price"),
@@ -30,6 +36,7 @@ async def get_products(
 ):
     return await product_service.get_products(
         db,
+        redis,
         category=category,
         search=search,
         min_price=min_price,
@@ -46,11 +53,17 @@ async def get_product(db: DBSession, product_id: UUID):
 
 @router.patch("/{product_id}", response_model=ProductResponse)
 async def update_product(
-    db: DBSession, product_id: UUID, product_data: ProductUpdate, _: AdminUser
+    db: DBSession,
+    redis: RedisClient,
+    product_id: UUID,
+    product_data: ProductUpdate,
+    _: AdminUser,
 ):
-    return await product_service.update_product(db, product_id, product_data)
+    return await product_service.update_product(db, redis, product_id, product_data)
 
 
 @router.delete("/{product_id}", response_model=ProductResponse)
-async def delete_product(db: DBSession, product_id: UUID, _: AdminUser):
-    return await product_service.delete_product(db, product_id)
+async def delete_product(
+    db: DBSession, redis: RedisClient, product_id: UUID, _: AdminUser
+):
+    return await product_service.delete_product(db, redis, product_id)

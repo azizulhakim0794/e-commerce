@@ -25,37 +25,46 @@ from middleware.request_logging import RequestLoggingMiddleware
 setup_logging()
 
 
+# @asynccontextmanager
+# async def lifespan(_: FastAPI):
+#     try:
+#         async with engine.begin() as conn:
+#             await conn.run_sync(Base.metadata.create_all)
+
+#             def migrate_sqlite_schema(sync_conn):
+#                 if sync_conn.dialect.name != "sqlite":
+#                     return
+
+#                 rating_columns = {
+#                     column["name"]
+#                     for column in inspect(sync_conn).get_columns("ratings")
+#                 }
+#                 if "photo_url" not in rating_columns:
+#                     sync_conn.execute(
+#                         text("ALTER TABLE ratings ADD COLUMN photo_url VARCHAR")
+#                     )
+
+#                 user_columns = {
+#                     column["name"] for column in inspect(sync_conn).get_columns("users")
+#                 }
+#                 if "is_admin" not in user_columns:
+#                     sync_conn.execute(
+#                         text(
+#                             "ALTER TABLE users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0"
+#                         )
+#                     )
+
+#             await conn.run_sync(migrate_sqlite_schema)
+
+#         await redis.ping()
+#         yield
+#     finally:
+#         await redis.aclose()
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-
-            def migrate_sqlite_schema(sync_conn):
-                if sync_conn.dialect.name != "sqlite":
-                    return
-
-                rating_columns = {
-                    column["name"]
-                    for column in inspect(sync_conn).get_columns("ratings")
-                }
-                if "photo_url" not in rating_columns:
-                    sync_conn.execute(
-                        text("ALTER TABLE ratings ADD COLUMN photo_url VARCHAR")
-                    )
-
-                user_columns = {
-                    column["name"] for column in inspect(sync_conn).get_columns("users")
-                }
-                if "is_admin" not in user_columns:
-                    sync_conn.execute(
-                        text(
-                            "ALTER TABLE users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0"
-                        )
-                    )
-
-            await conn.run_sync(migrate_sqlite_schema)
-
         await redis.ping()
         yield
     finally:

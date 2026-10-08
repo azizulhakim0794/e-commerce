@@ -22,3 +22,7 @@ async def create_cache_key(
     cache_version = await redis.get(version_key) or "0"
 
     return f"{resource}:{cache_version}:{cache_digest}"
+
+
+async def _invalidate_list_cache(redis: Redis, key: str) -> None:
+    await redis.incr(key)

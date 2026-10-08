@@ -5,8 +5,8 @@ from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from redis.exceptions import RedisError
-from sqlalchemy import inspect, text, select
-from db.database import Base, engine, get_db
+from sqlalchemy import text
+from db.database import get_db
 from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
 

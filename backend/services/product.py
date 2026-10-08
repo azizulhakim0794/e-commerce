@@ -10,7 +10,7 @@ from schemas.product import ProductCreate, ProductResponse, ProductUpdate
 from typing import Annotated
 from db.database import get_db
 from redis.asyncio import Redis
-from core.cache import create_cache_key
+from core.cache import create_cache_key, _invalidate_list_cache
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
 
@@ -18,8 +18,8 @@ PRODUCT_LIST_CACHE_VERSION_KEY = "products:list:version"
 PRODUCT_LIST_CACHE_TTL_SECONDS = 300
 
 
-async def _invalidate_product_list_cache(redis: Redis) -> None:
-    await redis.incr(PRODUCT_LIST_CACHE_VERSION_KEY)
+# async def _invalidate_product_list_cache(redis: Redis) -> None:
+#     await redis.incr(PRODUCT_LIST_CACHE_VERSION_KEY)
 
 
 async def create_product(
@@ -40,7 +40,7 @@ async def create_product(
     db.add(new_product)
     await db.commit()
     await db.refresh(new_product)
-    await _invalidate_product_list_cache(redis)
+    await _invalidate_list_cache(redis, PRODUCT_LIST_CACHE_VERSION_KEY)
 
     return new_product
 
@@ -152,7 +152,7 @@ async def update_product(
 
     await db.commit()
     await db.refresh(existing_product)
-    await _invalidate_product_list_cache(redis)
+    await _invalidate_list_cache(redis, PRODUCT_LIST_CACHE_VERSION_KEY)
 
     return existing_product
 
@@ -169,5 +169,5 @@ async def delete_product(db: DBSession, redis: Redis, product_id: UUID):
 
     await db.delete(existing_product)
     await db.commit()
-    await _invalidate_product_list_cache(redis)
+    await _invalidate_list_cache(redis, PRODUCT_LIST_CACHE_VERSION_KEY)
     return existing_product

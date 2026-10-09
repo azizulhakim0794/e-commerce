@@ -12,7 +12,8 @@ from schemas.rating import RatingCreate, RatingResponse, RatingUpdate
 from models import Order, OrderItem, Rating, Product
 from services import image_service
 from services.order import _build_order_response
-from core.config import settings
+
+# from core.config import settings
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
 MEDIA_ROOT = Path(__file__).resolve().parents[1] / "media" / "reviews"

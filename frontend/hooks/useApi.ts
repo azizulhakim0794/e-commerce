@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 type ServiceResult<TResponse> = TResponse | { data: TResponse };
 
@@ -12,43 +12,46 @@ export function useApi() {
   const [error, setError] = useState<unknown>(null);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleRequest = async <TArgs, TResponse>(
-    service: Service<TArgs, TResponse> | Promise<ServiceResult<TResponse>>,
-    args?: TArgs,
-  ) => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  const handleRequest = useCallback(
+    async <TArgs, TResponse>(
+      service: Service<TArgs, TResponse> | Promise<ServiceResult<TResponse>>,
+      args?: TArgs,
+    ) => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-      const response =
-        service instanceof Promise
-          ? await service
-          : await service(args as TArgs);
+        const response =
+          service instanceof Promise
+            ? await service
+            : await service(args as TArgs);
 
-      const responseData =
-        response && typeof response === "object" && "data" in response
-          ? response.data
-          : response;
+        const responseData =
+          response && typeof response === "object" && "data" in response
+            ? response.data
+            : response;
 
-      setData(responseData);
-      setIsSuccess(true);
+        setData(responseData);
+        setIsSuccess(true);
 
-      return {
-        success: true,
-        data: responseData,
-      };
-    } catch (error) {
-      setError(error);
-      setIsSuccess(false);
+        return {
+          success: true,
+          data: responseData,
+        };
+      } catch (error) {
+        setError(error);
+        setIsSuccess(false);
 
-      return {
-        success: false,
-        data: null,
-      };
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        return {
+          success: false,
+          data: null,
+        };
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
 
   return {
     handleRequest,

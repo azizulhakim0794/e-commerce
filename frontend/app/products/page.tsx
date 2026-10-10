@@ -25,7 +25,7 @@ export default function Products() {
     message: string;
   } | null>(null);
   const alertTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hasLoadedProducts = useRef(false);
+  // const hasLoadedProducts = useRef(false);
   const searchParams = useSearchParams();
   const { handleRequest } = useApi();
   const [category, setCategory] = useState(
@@ -33,8 +33,8 @@ export default function Products() {
   );
 
   useEffect(() => {
-    if (hasLoadedProducts.current) return;
-    hasLoadedProducts.current = true;
+    // if (hasLoadedProducts.current) return;
+    // hasLoadedProducts.current = true;
 
     const loadProduct = async () => {
       setIsProductsLoading(true);

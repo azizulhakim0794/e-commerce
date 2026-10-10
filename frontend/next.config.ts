@@ -6,6 +6,7 @@ const BACKEND_URL =
   "http://localhost:8000";
 
 const nextConfig: NextConfig = {
+  reactStrictMode: false,
   images: {
     remotePatterns: [
       {

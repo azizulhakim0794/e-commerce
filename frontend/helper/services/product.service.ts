@@ -49,8 +49,8 @@ export const product_service = {
     return responseData;
   },
 
-  get_cart_product: async (): Promise<CartResponse[]> => {
-    const { data: responseData } = await api.get<CartResponse[]>("/cart");
+  get_cart_product: async (): Promise<CartResponse | null> => {
+    const { data: responseData } = await api.get<CartResponse | null>("/cart");
     return responseData;
   },
 

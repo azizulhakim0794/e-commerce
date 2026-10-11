@@ -1,6 +1,7 @@
 export interface Rating {
   id: string;
   product_id: string;
+  order_id: string;
   rating: number;
   comment: string | null;
   photo_url: string | null;
@@ -12,6 +13,7 @@ export interface Rating {
 
 export interface RatingInput {
   product_id: string;
+  order_id: string;
   rating: number;
   comment: string;
   photo?: File | null;

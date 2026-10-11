@@ -19,6 +19,7 @@ export default function OrdersPage() {
   const [ratingProduct, setRatingProduct] = useState<
     OrderResponse["order_items"][number]["product"] | null
   >(null);
+  const [ratingOrderId, setRatingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -139,7 +140,10 @@ export default function OrdersPage() {
                           {order.status === "delivered" ? (
                             <button
                               type="button"
-                              onClick={() => setRatingProduct(item.product)}
+                              onClick={() => {
+                                setRatingProduct(item.product);
+                                setRatingOrderId(order.id);
+                              }}
                               className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-teal-700 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-teal-800"
                             >
                               <StarIcon className="h-3.5 w-3.5" />
@@ -186,7 +190,11 @@ export default function OrdersPage() {
 
       <RatingModal
         product={ratingProduct}
-        onClose={() => setRatingProduct(null)}
+        orderId={ratingOrderId}
+        onClose={() => {
+          setRatingProduct(null);
+          setRatingOrderId(null);
+        }}
       />
     </div>
   );

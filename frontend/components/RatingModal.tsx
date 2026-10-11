@@ -11,6 +11,7 @@ import Loading from "./Loading";
 
 type RatingModalProps = {
   product: Product | null;
+  orderId: string | null;
   onClose: () => void;
   onSaved?: (rating: Rating) => void;
 };
@@ -23,6 +24,7 @@ type PendingPhotoUpdate = {
 
 export default function RatingModal({
   product,
+  orderId,
   onClose,
   onSaved,
 }: RatingModalProps) {
@@ -53,7 +55,7 @@ export default function RatingModal({
   }, []);
 
   useEffect(() => {
-    if (!product || !user) return;
+    if (!product || !orderId || !user) return;
 
     let isCurrent = true;
     const loadRating = async () => {
@@ -64,8 +66,10 @@ export default function RatingModal({
       );
       const ownRating =
         result.success && Array.isArray(result.data)
-          ? (result.data.find((item) => item.user_name === user.username) ??
-            null)
+          ? (result.data.find(
+              (item) =>
+                item.user_name === user.username && item.order_id === orderId,
+            ) ?? null)
           : null;
 
       if (!isCurrent) return;
@@ -74,25 +78,26 @@ export default function RatingModal({
         setExistingRating(ownRating);
         setRating(ownRating?.rating ?? 0);
         setComment(ownRating?.comment ?? "");
-          setPhoto(null);
+        setPhoto(null);
 
-          const pendingUpdate =
-            ownRating && pendingPhotoUpdate?.ratingId === ownRating.id
-              ? pendingPhotoUpdate
-              : null;
+        const pendingUpdate =
+          ownRating && pendingPhotoUpdate?.ratingId === ownRating.id
+            ? pendingPhotoUpdate
+            : null;
 
-          if (
-            pendingUpdate &&
-            ownRating.photo_url === pendingUpdate.previousPhotoUrl
-          ) {
-            updatePhotoPreview(pendingUpdate.previewUrl);
-          } else {
-            updatePhotoPreview(ownRating?.photo_url ?? null);
+        if (
+          pendingUpdate &&
+          ownRating &&
+          ownRating.photo_url === pendingUpdate.previousPhotoUrl
+        ) {
+          updatePhotoPreview(pendingUpdate.previewUrl);
+        } else {
+          updatePhotoPreview(ownRating?.photo_url ?? null);
 
-            if (pendingUpdate) {
-              setPendingPhotoUpdate(null);
-            }
+          if (pendingUpdate) {
+            setPendingPhotoUpdate(null);
           }
+        }
       }
 
       if (isCurrent) setIsLoading(false);
@@ -103,7 +108,14 @@ export default function RatingModal({
     return () => {
       isCurrent = false;
     };
-  }, [product, user, pendingPhotoUpdate, handleRequest, updatePhotoPreview]);
+  }, [
+    product,
+    orderId,
+    user,
+    pendingPhotoUpdate,
+    handleRequest,
+    updatePhotoPreview,
+  ]);
 
   useEffect(
     () => () => {
@@ -115,7 +127,7 @@ export default function RatingModal({
   );
 
   const handleSubmit = async () => {
-    if (!product || rating === 0 || isSaving) return;
+    if (!product || !orderId || rating === 0 || isSaving) return;
 
     setIsSaving(true);
     const result = existingRating
@@ -127,6 +139,7 @@ export default function RatingModal({
         })
       : await handleRequest(ratingService.create, {
           product_id: product.id,
+          order_id: orderId,
           rating,
           comment,
           photo,

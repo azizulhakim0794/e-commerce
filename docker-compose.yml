@@ -46,6 +46,7 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:console.log@ecommerce-postgres:5432/ecommerce
       REDIS_URL: redis://ecommerce-redis:6379/0
+      IMAGE_UPLOAD_TEMP_DIR: /tmp/uploads
       FRONTEND_URL: http://localhost:3000
       WATCHFILES_FORCE_POLLING: "true"
     ports:
@@ -54,6 +55,7 @@ services:
       - ./backend:/app
       - /app/.venv
       - ecommerce-media-data:/app/media
+      - image-temp:/tmp/uploads
     depends_on:
       ecommerce-postgres:
         condition: service_healthy
@@ -64,6 +66,32 @@ services:
         aliases:
           - ecommerce-backend
           - backend
+
+  ecommerce-image-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: ecommerce-backend:latest
+    container_name: ecommerce-image-worker
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:console.log@ecommerce-postgres:5432/ecommerce
+      REDIS_URL: redis://ecommerce-redis:6379/0
+      IMAGE_UPLOAD_TEMP_DIR: /tmp/uploads
+    command: ["python", "-m", "workers.rq_worker"]
+    volumes:
+      - ./backend:/app
+      - /app/.venv
+      - image-temp:/tmp/uploads
+    depends_on:
+      ecommerce-postgres:
+        condition: service_healthy
+      ecommerce-redis:
+        condition: service_healthy
+    networks:
+      - ecommerce-network
 
   ecommerce-frontend:
     build:
@@ -95,6 +123,7 @@ services:
 volumes:
   ecommerce-postgres-data:
   ecommerce-media-data:
+  image-temp:
 
 networks:
   ecommerce-network:

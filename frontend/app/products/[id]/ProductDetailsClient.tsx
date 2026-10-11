@@ -94,7 +94,7 @@ export default function ProductDetails() {
       loadRatings();
       loadPurchaseStatus();
     }
-  }, [params.id, user]);
+  }, [params.id, user, handleRequest]);
 
   const handleProductIntoCart = async (quantity: number, product: Product) => {
     const loadProduct = async () => {
@@ -200,13 +200,14 @@ export default function ProductDetails() {
             )}
           </div>
           <div className="mt-6">
-            {user && hasPurchased && !ownRating ? (
+            {user && hasPurchased ? (
               <button
                 type="button"
                 onClick={() => setIsRatingModalOpen(true)}
                 className="inline-flex items-center gap-2 rounded-full bg-teal-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-teal-800"
               >
-                <StarIcon className="h-4 w-4" /> Rate and review
+                <StarIcon className="h-4 w-4" />{" "}
+                {ownRating ? "Edit review" : "Rate and review"}
               </button>
             ) : null}
           </div>

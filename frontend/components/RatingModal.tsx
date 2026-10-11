@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PhotoIcon, StarIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 import { ratingService } from "@/helper/services/rating.service";
@@ -13,6 +13,12 @@ type RatingModalProps = {
   product: Product | null;
   onClose: () => void;
   onSaved?: (rating: Rating) => void;
+};
+
+type PendingPhotoUpdate = {
+  ratingId: string;
+  previousPhotoUrl: string | null;
+  previewUrl: string;
 };
 
 export default function RatingModal({
@@ -29,10 +35,27 @@ export default function RatingModal({
   const [existingRating, setExistingRating] = useState<Rating | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [pendingPhotoUpdate, setPendingPhotoUpdate] =
+    useState<PendingPhotoUpdate | null>(null);
+  const previewObjectUrl = useRef<string | null>(null);
+
+  const updatePhotoPreview = useCallback((preview: string | null) => {
+    if (previewObjectUrl.current && previewObjectUrl.current !== preview) {
+      URL.revokeObjectURL(previewObjectUrl.current);
+      previewObjectUrl.current = null;
+    }
+
+    if (preview?.startsWith("blob:")) {
+      previewObjectUrl.current = preview;
+    }
+
+    setPhotoPreview(preview);
+  }, []);
 
   useEffect(() => {
     if (!product || !user) return;
 
+    let isCurrent = true;
     const loadRating = async () => {
       setIsLoading(true);
       const result = await handleRequest(
@@ -45,20 +68,51 @@ export default function RatingModal({
             null)
           : null;
 
-      console.log(result?.data?.photo_url);
+      if (!isCurrent) return;
 
-      if (result.success && result.data) {
+      if (result.success && Array.isArray(result.data)) {
         setExistingRating(ownRating);
         setRating(ownRating?.rating ?? 0);
         setComment(ownRating?.comment ?? "");
-        setPhoto(ownRating?.photo_url);
-        setPhotoPreview(ownRating?.photo_url);
-        setIsLoading(false);
+          setPhoto(null);
+
+          const pendingUpdate =
+            ownRating && pendingPhotoUpdate?.ratingId === ownRating.id
+              ? pendingPhotoUpdate
+              : null;
+
+          if (
+            pendingUpdate &&
+            ownRating.photo_url === pendingUpdate.previousPhotoUrl
+          ) {
+            updatePhotoPreview(pendingUpdate.previewUrl);
+          } else {
+            updatePhotoPreview(ownRating?.photo_url ?? null);
+
+            if (pendingUpdate) {
+              setPendingPhotoUpdate(null);
+            }
+          }
       }
+
+      if (isCurrent) setIsLoading(false);
     };
 
     void loadRating();
-  }, [product, user]);
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [product, user, pendingPhotoUpdate, handleRequest, updatePhotoPreview]);
+
+  useEffect(
+    () => () => {
+      if (previewObjectUrl.current) {
+          URL.revokeObjectURL(previewObjectUrl.current);
+      }
+    },
+    [],
+  );
 
   const handleSubmit = async () => {
     if (!product || rating === 0 || isSaving) return;
@@ -79,7 +133,17 @@ export default function RatingModal({
         });
 
     if (result.success && result.data) {
-      onSaved?.(result.data as Rating);
+      const savedRating = result.data as Rating;
+      if (photo && photoPreview?.startsWith("blob:")) {
+        setPendingPhotoUpdate({
+          ratingId: savedRating.id,
+          previousPhotoUrl:
+            existingRating?.photo_url ?? savedRating.photo_url,
+          previewUrl: photoPreview,
+        });
+        setPhoto(null);
+      }
+      onSaved?.(savedRating);
       onClose();
     }
     setIsSaving(false);
@@ -150,9 +214,11 @@ export default function RatingModal({
                 onChange={(event) => {
                   const selectedPhoto = event.target.files?.[0] ?? null;
                   setPhoto(selectedPhoto);
-                  setPhotoPreview(
+                  setPendingPhotoUpdate(null);
+                  updatePhotoPreview(
                     selectedPhoto ? URL.createObjectURL(selectedPhoto) : null,
                   );
+                  event.target.value = "";
                 }}
               />
               {photoPreview ? (
@@ -166,13 +232,22 @@ export default function RatingModal({
                     type="button"
                     onClick={() => {
                       setPhoto(null);
-                      setPhotoPreview(null);
+                      setPendingPhotoUpdate(null);
+                      updatePhotoPreview(null);
                     }}
                     className="text-xs font-bold text-slate-500 hover:text-red-600"
                   >
                     Remove photo
                   </button>
                 </div>
+              ) : null}
+              {existingRating &&
+              pendingPhotoUpdate &&
+              pendingPhotoUpdate.ratingId === existingRating.id &&
+              existingRating.photo_url === pendingPhotoUpdate.previousPhotoUrl ? (
+                <p className="mt-2 text-xs text-slate-500" role="status">
+                  Your new photo is processing.
+                </p>
               ) : null}
             </div>
             <div className="mt-5 flex justify-end gap-3">

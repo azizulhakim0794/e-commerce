@@ -8,24 +8,46 @@
 
 folder structure
 
-app/
+backend/
+│
+├── core/
+│ ├── security.py
+│ └── redis.py # Redis connection/client
+│
+├── db/
+│ └── database.py # Database engine and sessions
+│
+├── jobs/ # Background job processing
+│ ├── **init**.py
+│ ├── queue.py # RQ queue configuration
+│ ├── image_tasks.py # Image processing jobs
+│ └── email_tasks.py # Email sending jobs (future)
+│
+├── workers/ # Worker process entry points (optional)
+│ └── rq_worker.py # Starts the RQ worker
+│
+├── logs/
+│
+├── media/
+│
+├── middleware/
+│
+├── migrations/
+│
 ├── models/
 │ └── user.py
 │
-├── schemas/
+├── routers/
 │ └── auth.py
 │
-├── routers/
+├── schemas/
 │ └── auth.py
 │
 ├── services/
 │ └── auth.py
 │
-├── core/
-│ └── security.py
-│
-└── db/
-└── database.py
+└── tests/
+└── test_auth.py
 
 transitions SQLite3 to PostgreSQL
 
@@ -94,3 +116,12 @@ uv run alembic revision --autogenerate -m "add gender to user"
 1. docker compose exec ecommerce-backend uv run alembic revision --autogenerate -m "add gender to user"
 
 2. docker compose exec ecommerce-backend uv run alembic upgrade head
+
+## Rating image uploads
+
+Rating photos are staged in the shared `image-temp` volume and processed by the
+`ecommerce-image-worker` RQ worker. The worker uploads images to Cloudinary and
+updates the rating's `photo_url` after the upload succeeds. Start it with the
+rest of the application using `docker compose up --build`; for local development,
+run `uv run --project backend python -m workers.rq_worker` alongside the API,
+with Redis available at the configured `REDIS_URL`.

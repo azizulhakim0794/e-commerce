@@ -1,3 +1,6 @@
+import tempfile
+from pathlib import Path
+
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -19,6 +22,7 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     max_upload_size_bytes: int = 5 * 1024 * 1024
+    image_upload_temp_dir: Path = Path(tempfile.gettempdir()) / "uploads"
     REDIS_URL: str = "redis://ecommerce-redis:6379/0"
 
     posts_per_page: int = 10

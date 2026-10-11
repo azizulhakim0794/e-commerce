@@ -19,7 +19,7 @@ from routers.order import router as order_router
 from routers.rating import router as rating_router
 from routers.admin import router as admin_router
 from core.logging_config import setup_logging
-from core.redis import redis
+from core.redis import redis_client
 from middleware.request_logging import RequestLoggingMiddleware
 
 setup_logging()
@@ -65,10 +65,11 @@ setup_logging()
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     try:
-        await redis.ping()
+        await redis_client.ping()
         yield
     finally:
-        await redis.aclose()
+        await redis_client.aclose()
+        # image_queue.close()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -172,7 +173,7 @@ async def health_check(db: Annotated[AsyncSession, Depends(get_db)]):
             detail="Database unavailable",
         ) from exc
     try:
-        await redis.ping()
+        await redis_client.ping()
     except RedisError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

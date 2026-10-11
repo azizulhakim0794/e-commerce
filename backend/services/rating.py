@@ -49,16 +49,25 @@ async def create_rating(
 
     orders_result = await db.execute(
         select(Order)
-        .options(selectinload(Order.items))
+        .options(
+            selectinload(Order.items).selectinload(OrderItem.product)
+        )
         .where(
             Order.user_id == current_user.id,
             Order.items.any(OrderItem.product_id == product.id),
+            Order.id == rating_data.order_id,
         )
     )
 
+    orders = orders_result.scalars().all()
+
+    if not orders:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ordered item not found"
+        )
+
     has_delivered_order = any(
-        _build_order_response(order).status == "delivered"
-        for order in orders_result.scalars().all()
+        _build_order_response(order).status == "delivered" for order in orders
     )
 
     if not has_delivered_order:
@@ -71,6 +80,7 @@ async def create_rating(
         select(Rating).where(
             Rating.product_id == rating_data.product_id,
             Rating.user_id == current_user.id,
+            Rating.order_id == rating_data.order_id,
         )
     )
     rating = existing_result.scalar_one_or_none()
@@ -82,6 +92,7 @@ async def create_rating(
     else:
         rating = Rating(
             product_id=product.id,
+            order_id=rating_data.order_id,
             user_id=current_user.id,
             rating=rating_data.rating,
             comment=rating_data.comment,

@@ -17,12 +17,14 @@ async def create_rating(
     db: DBSession,
     current_user: CurrentUser,
     product_id: UUID = Form(...),
+    order_id: UUID = Form(...),
     rating: int = Form(...),
     comment: str | None = Form(None),
     photo: UploadFile | None = File(None),
 ):
     rating_data = RatingCreate(
         product_id=product_id,
+        order_id=order_id,
         rating=rating,
         comment=comment,
     )

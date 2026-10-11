@@ -11,9 +11,10 @@ class Rating(Base):
 
     __table_args__ = (
         UniqueConstraint(
+            "order_id",
             "product_id",
             "user_id",
-            name="uq_rating_product_user",
+            name="uq_rating_order_product_user",
         ),
     )
 
@@ -24,6 +25,11 @@ class Rating(Base):
 
     product_id: Mapped[UUID] = mapped_column(
         ForeignKey("products.id"),
+        nullable=False,
+    )
+
+    order_id: Mapped[UUID] = mapped_column(
+        ForeignKey("orders.id"),
         nullable=False,
     )
 

@@ -2,14 +2,15 @@ import api from "../api";
 import { Rating, RatingInput } from "@/types";
 
 export const ratingService = {
-    getByProductId: async (productId: string): Promise<Rating> => {
-        const { data } = await api.get<Rating>(`/rating/${productId}`);
+    getByProductId: async (productId: string): Promise<Rating[]> => {
+        const { data } = await api.get<Rating[]>(`/rating/${productId}`);
         return data;
     },
 
     create: async (data: RatingInput): Promise<Rating> => {
         const formData = new FormData();
         formData.append("product_id", data.product_id);
+        formData.append("order_id", data.order_id);
         formData.append("rating", String(data.rating));
         formData.append("comment", data.comment);
         if (data.photo) formData.append("photo", data.photo);
@@ -20,7 +21,7 @@ export const ratingService = {
     },
 
     update: async (
-        data: { id: string } & Omit<RatingInput, "product_id">,
+        data: { id: string } & Omit<RatingInput, "product_id" | "order_id">,
     ): Promise<Rating> => {
         const { id, ...payload } = data;
         const formData = new FormData();

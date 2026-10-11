@@ -3,45 +3,51 @@ import Link from "next/link";
 import Image from "next/image";
 import { MinusIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useStore } from "../../store/StoreProvider";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useApi } from "@/hooks/useApi";
 import { product_service } from "@/helper/services/product.service";
-import { CartItem, CartResponse } from "@/types";
+import { CartResponse } from "@/types";
 import OrderCheckoutModal from "@/components/OrderCheckoutModal";
 import Loading from "@/components/Loading";
 import { isValidImageSource } from "@/lib/image";
 
 export default function CartPage() {
-  const [cartProducts, setCartProducts] = useState<CartResponse[] | null>(null);
+  const [cartProducts, setCartProducts] = useState<CartResponse | null>(null);
+  const [isCartLoading, setIsCartLoading] = useState(true);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const { handleRequest } = useApi();
   const { user, isSessionLoading, syncCart } = useStore();
-  const cartItems = cartProducts?.[0]?.items ?? [];
+  const syncCartRef = useRef(syncCart);
+  const cartItems = user ? (cartProducts?.items ?? []) : [];
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
     0,
   );
   const shipping = subtotal >= 75 || subtotal === 0 ? 0 : 8;
 
-  const loadProduct = async () => {
+  const loadProduct = useCallback(async () => {
+    setIsCartLoading(true);
     const result = await handleRequest(product_service.get_cart_product);
 
-    const products =
-      result.success && Array.isArray(result.data) ? result.data : [];
+    const cart = result.success ? result.data : null;
+    setCartProducts(cart);
+    syncCartRef.current(cart?.items ?? []);
+    setIsCartLoading(false);
+  }, [handleRequest]);
 
-    setCartProducts(products);
-    syncCart(products[0]?.items ?? []);
-  };
+  useEffect(() => {
+    syncCartRef.current = syncCart;
+  }, [syncCart]);
+
   useEffect(() => {
     if (isSessionLoading) return;
     if (!user) {
-      setCartProducts([]);
-      syncCart([]);
+      syncCartRef.current([]);
       return;
     }
 
-    void loadProduct();
-  }, [isSessionLoading, user]);
+    void Promise.resolve().then(loadProduct);
+  }, [isSessionLoading, user, loadProduct]);
 
   const hanldeRemoveProductFromCart = async (cart_id: string) => {
     const result = await handleRequest(
@@ -86,7 +92,7 @@ export default function CartPage() {
       <h1 className="mt-2 text-4xl font-black tracking-tight">
         Ready when you are.
       </h1>
-      {isSessionLoading || cartProducts === null ? (
+      {isSessionLoading || isCartLoading ? (
         <Loading minHeight="min-h-[40vh]" />
       ) : cartItems.length === 0 ? (
         <div className="py-24 text-center">

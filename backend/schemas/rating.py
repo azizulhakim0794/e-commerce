@@ -7,6 +7,7 @@ class RatingCreate(BaseModel):
     product_id: UUID
     rating: int = Field(ge=1, le=5)
     comment: str | None = Field(default=None, max_length=1000)
+    order_id: UUID
 
 
 class RatingUpdate(BaseModel):
@@ -17,6 +18,7 @@ class RatingUpdate(BaseModel):
 class RatingResponse(BaseModel):
     id: UUID
     product_id: UUID
+    order_id: UUID
     user_id: UUID
     rating: int
     comment: str | None

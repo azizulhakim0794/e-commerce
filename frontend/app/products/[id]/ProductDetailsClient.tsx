@@ -31,7 +31,7 @@ export default function ProductDetails() {
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
   const [ratings, setRatings] = useState<Rating[]>([]);
-  const [hasPurchased, setHasPurchased] = useState(false);
+  const [reviewOrderId, setReviewOrderId] = useState<string | null>(null);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const [alert, setAlert] = useState<{
     type: "success" | "error" | "warning" | "info";
@@ -72,21 +72,21 @@ export default function ProductDetails() {
 
     const loadPurchaseStatus = async () => {
       if (!user) {
-        setHasPurchased(false);
+        setReviewOrderId(null);
         return;
       }
 
       const result = await handleRequest(orderService.getOrders);
-      const purchased =
+      const purchasedOrder =
         result.success && Array.isArray(result.data)
-          ? result.data.some(
+          ? result.data.find(
               (order) =>
                 order.status === "delivered" &&
                 order.order_items.some((item) => item.product_id === params.id),
             )
-          : false;
+          : undefined;
 
-      setHasPurchased(purchased);
+      setReviewOrderId(purchasedOrder?.id ?? null);
     };
 
     if (params.id) {
@@ -163,7 +163,9 @@ export default function ProductDetails() {
       </div>
     );
   const ownRating = ratings.find(
-    (rating) => rating.user_name === user?.username,
+    (rating) =>
+      rating.user_name === user?.username &&
+      rating.order_id === reviewOrderId,
   );
   const productImageSrc = product.image?.trim();
   const hasValidProductImage = isValidImageSource(productImageSrc);
@@ -200,7 +202,7 @@ export default function ProductDetails() {
             )}
           </div>
           <div className="mt-6">
-            {user && hasPurchased ? (
+            {user && reviewOrderId ? (
               <button
                 type="button"
                 onClick={() => setIsRatingModalOpen(true)}
@@ -316,6 +318,7 @@ export default function ProductDetails() {
       />
       <RatingModal
         product={isRatingModalOpen ? product : null}
+        orderId={reviewOrderId}
         onClose={() => setIsRatingModalOpen(false)}
         onSaved={(savedRating) => {
           const nextRatings = ratings.some(

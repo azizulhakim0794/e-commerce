@@ -18,10 +18,6 @@ PRODUCT_LIST_CACHE_VERSION_KEY = "products:list:version"
 PRODUCT_LIST_CACHE_TTL_SECONDS = 300
 
 
-# async def _invalidate_product_list_cache(redis: Redis) -> None:
-#     await redis.incr(PRODUCT_LIST_CACHE_VERSION_KEY)
-
-
 async def create_product(
     db: DBSession, redis: Redis, product_data: ProductCreate
 ) -> Product:
@@ -55,23 +51,6 @@ async def get_products(
     page: int = 1,
     limit: int = 20,
 ) -> list[Product]:
-    # cache_parameters = json.dumps(
-    #     {
-    #         "category": category,
-    #         "search": search,
-    #         "min_price": min_price,
-    #         "max_price": max_price,
-    #         "page": page,
-    #         "limit": limit,
-    #     },
-    #     sort_keys=True,
-    #     separators=(",", ":"),
-    # )
-    # cache_digest = hashlib.sha256(cache_parameters.encode()).hexdigest()
-    # cache_version = await redis.get(PRODUCT_LIST_CACHE_VERSION_KEY) or "0"
-
-    # cache_key = f"products:list:{cache_version}:{cache_digest}"
-
     cache_key = await create_cache_key(
         redis=redis,
         resource="products:list",

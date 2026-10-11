@@ -14,7 +14,7 @@ async def test_create_rating_is_linked_to_order_and_listed_by_product(
     db_session,
     test_products,
 ):
-    product = test_products[0]
+    product, other_product = test_products
     user_result = await db_session.execute(
         select(User).where(User.email == "admin@example.com")
     )
@@ -28,6 +28,15 @@ async def test_create_rating_is_linked_to_order_and_listed_by_product(
             product_id=product.id,
             quantity=1,
             unit_price=Decimal(product.price),
+            created_at=datetime.now(timezone.utc) - timedelta(days=1),
+        )
+    )
+    db_session.add(
+        OrderItem(
+            order_id=order.id,
+            product_id=other_product.id,
+            quantity=1,
+            unit_price=Decimal(other_product.price),
             created_at=datetime.now(timezone.utc) - timedelta(days=1),
         )
     )
@@ -53,3 +62,10 @@ async def test_create_rating_is_linked_to_order_and_listed_by_product(
     assert listed_response.status_code == 200
     assert len(listed_response.json()) == 1
     assert listed_response.json()[0]["id"] == response.json()["id"]
+
+    other_product_ratings = await authenticated_client.get(
+        f"/api/v1/rating/{other_product.id}"
+    )
+
+    assert other_product_ratings.status_code == 200
+    assert other_product_ratings.json() == []

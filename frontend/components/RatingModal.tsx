@@ -60,6 +60,12 @@ export default function RatingModal({
     let isCurrent = true;
     const loadRating = async () => {
       setIsLoading(true);
+      setExistingRating(null);
+      setRating(0);
+      setComment("");
+      setPhoto(null);
+      updatePhotoPreview(null);
+
       const result = await handleRequest(
         ratingService.getByProductId,
         product.id,
@@ -78,7 +84,6 @@ export default function RatingModal({
         setExistingRating(ownRating);
         setRating(ownRating?.rating ?? 0);
         setComment(ownRating?.comment ?? "");
-        setPhoto(null);
 
         const pendingUpdate =
           ownRating && pendingPhotoUpdate?.ratingId === ownRating.id

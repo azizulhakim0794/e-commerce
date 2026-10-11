@@ -188,14 +188,17 @@ export default function OrdersPage() {
         Keep shopping →
       </Link>
 
-      <RatingModal
-        product={ratingProduct}
-        orderId={ratingOrderId}
-        onClose={() => {
-          setRatingProduct(null);
-          setRatingOrderId(null);
-        }}
-      />
+      {ratingProduct && ratingOrderId ? (
+        <RatingModal
+          key={`${ratingOrderId}:${ratingProduct.id}`}
+          product={ratingProduct}
+          orderId={ratingOrderId}
+          onClose={() => {
+            setRatingProduct(null);
+            setRatingOrderId(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

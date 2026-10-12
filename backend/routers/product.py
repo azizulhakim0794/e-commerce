@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, Query, UploadFile
 from schemas.product import ProductResponse, ProductCreate, ProductUpdate
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
@@ -21,6 +21,16 @@ async def create_product(
     db: DBSession, redis: RedisClient, product_data: ProductCreate, _: AdminUser
 ):
     return await product_service.create_product(db, redis, product_data)
+
+
+@router.post("/{product_id}/image", status_code=202)
+async def upload_product_image(
+    db: DBSession,
+    product_id: UUID,
+    _: AdminUser,
+    photo: UploadFile = File(...),
+):
+    return await product_service.upload_product_image(db, product_id, photo)
 
 
 @router.get("", response_model=list[ProductResponse])

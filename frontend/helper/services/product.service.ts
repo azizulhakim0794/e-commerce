@@ -4,14 +4,25 @@ import {
   CreateProductType,
   AllOrderResponse,
 } from "@/types";
-import api from "../api";
+import api, { UPLOAD } from "../api";
 
 export const product_service = {
-  save_product: async (
+  create_product: async (
     product_data: CreateProductType,
-  ): Promise<CreateProductType> => {
+  ): Promise<Product> => {
     const { data } = await api.post<Product>("/products", product_data);
     return data;
+  },
+  upload_product_image: async (
+    productId: string,
+    photo: File,
+  ): Promise<{ job_id: string; status: string }> => {
+    const formData = new FormData();
+    formData.append("photo", photo);
+    return UPLOAD<{ job_id: string; status: string }>(
+      `/products/${productId}/image`,
+      formData,
+    );
   },
   get_products: async (): Promise<Product[]> => {
     const { data } = await api.get<Product[]>("/products");

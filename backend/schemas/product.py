@@ -8,7 +8,7 @@ class ProductCreate(BaseModel):
     description: str
     price: Decimal = Field(gt=0, le=100000)
     original_price: Decimal | None = Field(default=None, gt=0, le=100000)
-    image: str
+    image: str | None = None
     category: str
     rating: float = Field(ge=0, le=5)
     reviews: int = Field(ge=0)
@@ -36,7 +36,8 @@ class ProductResponse(BaseModel):
     description: str
     price: Decimal
     original_price: Decimal | None = None
-    image: str
+    image: str | None = None
+    photo_url: str | None = None
     category: str
     rating: float = Field(ge=0, le=5)
     reviews: int = Field(ge=0)

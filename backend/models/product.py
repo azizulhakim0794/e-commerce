@@ -26,7 +26,18 @@ class Product(Base):
         Numeric(10, 2), nullable=True
     )
 
-    image: Mapped[str] = mapped_column(String)
+    photo_url: Mapped[str | None] = mapped_column(
+        nullable=True,
+    )
+
+    @property
+    def image(self) -> str | None:
+        return self.photo_url
+
+    @image.setter
+    def image(self, value: str | None) -> None:
+        self.photo_url = value
+
     category: Mapped[str] = mapped_column(String)
 
     rating: Mapped[float] = mapped_column(Float, default=0)

@@ -13,7 +13,7 @@ from core.config import settings
 
 from core.security import CurrentUser
 from db.database import get_db
-from jobs.queue import enqueue_rating_image as enqueue_rating_image_job
+from jobs.queue import enqueue_image as enqueue_rating_image_job
 from models import Order, OrderItem, Rating, Product
 from schemas.rating import RatingCreate, RatingResponse, RatingUpdate
 from services import image_service
@@ -26,6 +26,8 @@ ALLOWED_PHOTO_TYPES = {
     "image/png": ".png",
     "image/webp": ".webp",
 }
+
+RATING_LOCATION = "ecommerce/ratings"
 
 
 # Creates or updates a product rating after verifying that the user has received the product.
@@ -49,9 +51,7 @@ async def create_rating(
 
     orders_result = await db.execute(
         select(Order)
-        .options(
-            selectinload(Order.items).selectinload(OrderItem.product)
-        )
+        .options(selectinload(Order.items).selectinload(OrderItem.product))
         .where(
             Order.user_id == current_user.id,
             Order.items.any(OrderItem.product_id == product.id),
@@ -109,7 +109,7 @@ async def create_rating(
 
     if image_path:
         try:
-            enqueue_rating_image_job(rating.id, image_path)
+            enqueue_rating_image_job(rating.id, image_path, RATING_LOCATION)
         except RedisError as exc:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -236,7 +236,7 @@ async def update_rating(
 
     if image_path:
         try:
-            enqueue_rating_image_job(rating.id, image_path)
+            enqueue_rating_image_job(rating.id, image_path, RATING_LOCATION)
         except RedisError as exc:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

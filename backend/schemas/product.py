@@ -8,7 +8,7 @@ class ProductCreate(BaseModel):
     description: str
     price: Decimal = Field(gt=0, le=100000)
     original_price: Decimal | None = Field(default=None, gt=0, le=100000)
-    image: str | None = None
+    photo_url: str | None = None
     category: str
     rating: float = Field(ge=0, le=5)
     reviews: int = Field(ge=0)
@@ -23,7 +23,7 @@ class ProductUpdate(BaseModel):
     description: str | None = None
     price: Decimal | None = Field(default=None, gt=0, le=100000)
     original_price: Decimal | None = Field(default=None, gt=0, le=100000)
-    image: str | None = None
+    photo_url: str | None = None
     category: str | None = None
     badge: str | None = None
     stock: int | None = Field(default=None, ge=0, le=10000)
@@ -36,7 +36,6 @@ class ProductResponse(BaseModel):
     description: str
     price: Decimal
     original_price: Decimal | None = None
-    image: str | None = None
     photo_url: str | None = None
     category: str
     rating: float = Field(ge=0, le=5)

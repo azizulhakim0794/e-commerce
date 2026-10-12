@@ -43,7 +43,7 @@ export default function ProductCard({
   const discount = product.originalPrice
     ? Math.round((1 - product.price / product.originalPrice) * 100)
     : 0;
-  const imageSrc = product.image?.trim();
+  const imageSrc = product.photo_url?.trim();
   const hasValidImage = isValidImageSource(imageSrc);
 
   return (

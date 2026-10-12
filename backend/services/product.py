@@ -45,7 +45,7 @@ async def create_product(
         badge=product_data.badge,
         stock=product_data.stock,
         specs=product_data.specs,
-        photo_url=product_data.image,
+        photo_url=product_data.photo_url,
     )
 
     db.add(new_product)
@@ -163,7 +163,8 @@ async def get_products(
         cached_items = json.loads(cached_products)
         for product in cached_items:
             if "photo_url" not in product:
-                product["photo_url"] = product.pop("image", None)
+                product["photo_url"] = product.get("image")
+            product.pop("image", None)
         return [Product(**product) for product in cached_items]
 
     query = select(Product)

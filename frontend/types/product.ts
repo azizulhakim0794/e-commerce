@@ -17,9 +17,7 @@ export interface CreateProductType {
   category: string;
   specs: string[];
   stock: number;
-  image?: string | null;
   photo_url?: string | null;
-  photo?: string | null;
 }
 
 export interface CartItem {

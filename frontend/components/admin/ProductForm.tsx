@@ -16,7 +16,7 @@ const emptyProduct = {
   price: 0,
   stock: 0,
   description: "",
-  image: "",
+  photo_url: "",
   specs: [],
   rating: 0,
   reviews: 0,
@@ -43,7 +43,7 @@ export default function ProductForm({ product }: { product?: Product }) {
           price: product.price,
           stock: product.stock,
           description: product.description,
-          image: product.image ?? "",
+          photo_url: product.photo_url ?? "",
           specs: product.specs ?? [],
           badge: product.badge ?? "",
           rating: product.rating ?? 0,
@@ -86,7 +86,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       badge: form.badge,
       category: form.category,
       description: form.description,
-      image: form.image,
+      photo_url: form.photo_url,
       name: form.name,
       price: form.price,
       specs: specs,
@@ -125,7 +125,7 @@ export default function ProductForm({ product }: { product?: Product }) {
         price: 0,
         stock: 0,
         description: "",
-        image: "",
+        photo_url: "",
         specs: [],
         badge: "",
         rating: 0,
@@ -267,9 +267,9 @@ export default function ProductForm({ product }: { product?: Product }) {
 
             <div className="flex min-h-52 flex-col rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
               <div className="relative flex min-h-32 flex-1 items-center justify-center overflow-hidden rounded-xl bg-[#f3f6f4]">
-                {photoPreview || form.image ? (
+                {photoPreview || form.photo_url ? (
                   <Image
-                    src={photoPreview ?? form.image}
+                    src={photoPreview ?? form.photo_url}
                     alt={
                       photo
                         ? `Selected image: ${photo.name}`
@@ -291,14 +291,14 @@ export default function ProductForm({ product }: { product?: Product }) {
                 <p className="truncate text-xs font-bold text-slate-700">
                   {photo
                     ? photo.name
-                    : form.image
+                    : form.photo_url
                       ? "Current product image"
                       : "Image preview"}
                 </p>
                 <p className="mt-0.5 text-xs text-slate-500">
                   {photo
                     ? `${(photo.size / (1024 * 1024)).toFixed(2)} MB`
-                    : form.image
+                    : form.photo_url
                       ? "Ready to use"
                       : "Preview will appear here"}
                 </p>

@@ -37,7 +37,7 @@ async def test_get_products_uses_redis_cache_and_invalidates_after_create(
             name="Cached product",
             description="A product used to verify list cache invalidation.",
             price=12.50,
-            image="https://example.com/product.jpg",
+            photo_url="https://example.com/product.jpg",
             category="Test",
             rating=4.5,
             reviews=1,
@@ -51,22 +51,22 @@ async def test_get_products_uses_redis_cache_and_invalidates_after_create(
 
     assert response.status_code == 200
     assert [product["name"] for product in response.json()] == ["Cached product"]
-    assert response.json()[0]["image"] == "https://example.com/product.jpg"
     assert response.json()[0]["photo_url"] == "https://example.com/product.jpg"
+    assert "image" not in response.json()[0]
 
     cached_response = await client.get("/api/v1/products")
     assert cached_response.status_code == 200
-    assert cached_response.json()[0]["image"] == "https://example.com/product.jpg"
     assert cached_response.json()[0]["photo_url"] == "https://example.com/product.jpg"
+    assert "image" not in cached_response.json()[0]
 
     product_id = response.json()[0]["id"]
     single_product_response = await client.get(f"/api/v1/products/{product_id}")
     assert single_product_response.status_code == 200
-    assert single_product_response.json()["image"] == "https://example.com/product.jpg"
     assert (
         single_product_response.json()["photo_url"]
         == "https://example.com/product.jpg"
     )
+    assert "image" not in single_product_response.json()
 
 
 @pytest.mark.asyncio

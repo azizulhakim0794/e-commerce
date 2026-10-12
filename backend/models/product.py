@@ -30,14 +30,6 @@ class Product(Base):
         nullable=True,
     )
 
-    @property
-    def image(self) -> str | None:
-        return self.photo_url
-
-    @image.setter
-    def image(self, value: str | None) -> None:
-        self.photo_url = value
-
     category: Mapped[str] = mapped_column(String)
 
     rating: Mapped[float] = mapped_column(Float, default=0)

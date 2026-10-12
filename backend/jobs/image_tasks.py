@@ -5,15 +5,19 @@ from uuid import UUID
 
 from services import image_service
 from services.rating import _save_rating_photo
+from services.product import _save_product_photo
 
 logger = logging.getLogger(__name__)
+RATING_IMAGE_FOLDER = "ecommerce/ratings"
+PRODUCT_IMAGE_FOLDER = "ecommerce/products"
 
 
-# Uploads a rating photo and persists its URL.
+# Uploads an image and persists its URL.
 # Keeps the temporary file when processing fails so RQ can retry.
 def process_rating_image(
-    rating_id: str,
+    process_id: str,
     image_path: str,
+    folder: str = RATING_IMAGE_FOLDER,
 ) -> None:
     staged_path = Path(image_path)
     uploaded_image = None
@@ -24,19 +28,31 @@ def process_rating_image(
         # Upload the staged image to Cloudinary.
         uploaded_image = image_service.upload_image(
             file_path=staged_path,
-            folder="ecommerce/ratings",
+            folder=folder,
         )
 
         # Save the Cloudinary URL using a worker-owned DB session.
-        rating_updated, previous_photo_url = asyncio.run(
-            _save_rating_photo(
-                UUID(rating_id),
-                uploaded_image["url"],
+        if folder == RATING_IMAGE_FOLDER:
+            record_updated, previous_photo_url = asyncio.run(
+                _save_rating_photo(
+                    UUID(process_id),
+                    uploaded_image["url"],
+                )
             )
-        )
 
-        if not rating_updated:
-            # The rating was deleted before this job executed.
+        elif folder == PRODUCT_IMAGE_FOLDER:
+            record_updated, previous_photo_url = asyncio.run(
+                _save_product_photo(
+                    UUID(process_id),
+                    uploaded_image["url"],
+                )
+            )
+
+        else:
+            raise ValueError(f"Unsupported image folder: {folder}")
+
+        if not record_updated:
+            # The rating or product was deleted before this job executed.
             image_service.delete_image(uploaded_image["public_id"])
             processing_complete = True
             return
@@ -51,8 +67,9 @@ def process_rating_image(
             except Exception:
                 # Log cleanup failure without retrying the upload.
                 logger.exception(
-                    "Could not delete previous rating photo: %s",
-                    rating_id,
+                    "Could not delete previous photo from folder '%s'. Process ID: %s",
+                    folder,
+                    process_id,
                 )
 
     except Exception:
@@ -63,8 +80,9 @@ def process_rating_image(
                 image_service.delete_image(uploaded_image["public_id"])
             except Exception:
                 logger.exception(
-                    "Could not clean up failed image upload: %s",
-                    rating_id,
+                    "Could not clean up failed image upload: %s the location is: %s",
+                    process_id,
+                    folder,
                 )
 
         # RQ must receive the exception to recognize the job as failed

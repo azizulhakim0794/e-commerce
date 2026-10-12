@@ -167,7 +167,7 @@ export default function ProductDetails() {
       rating.user_name === user?.username &&
       rating.order_id === reviewOrderId,
   );
-  const productImageSrc = product.image?.trim();
+  const productImageSrc = product.photo_url?.trim();
   const hasValidProductImage = isValidImageSource(productImageSrc);
 
   return (

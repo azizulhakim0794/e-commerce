@@ -71,9 +71,7 @@ async def test_stage_photo_rejects_files_over_configured_limit(monkeypatch, tmp_
     assert exc_info.value.status_code == 413
 
 
-def test_queue_enqueue_removes_file_when_redis_is_unavailable(
-    tmp_path, monkeypatch
-):
+def test_queue_enqueue_removes_file_when_redis_is_unavailable(tmp_path, monkeypatch):
     class UnavailableQueue:
         def enqueue(self, *args, **kwargs):
             raise RedisError("Redis unavailable")
@@ -121,6 +119,42 @@ def test_image_job_uploads_and_persists_photo_in_background(tmp_path, monkeypatc
         (
             UUID("8a2c8f63-96b8-4f1b-a4db-75f34aef332d"),
             "https://res.cloudinary.com/example/image/upload/rating.png",
+        )
+    ]
+    assert not image_path.exists()
+
+
+def test_image_job_uploads_and_persists_product_photo(tmp_path, monkeypatch):
+    image_path = tmp_path / "product.png"
+    image_path.write_bytes(b"image-data")
+    upload_calls = []
+    persisted_urls = []
+
+    def upload_image(*, file_path, folder):
+        upload_calls.append((file_path, folder))
+        return {
+            "url": "https://res.cloudinary.com/example/image/upload/product.png",
+            "public_id": "ecommerce/products/product",
+        }
+
+    async def save_product_photo(product_id, photo_url):
+        persisted_urls.append((product_id, photo_url))
+        return True, None
+
+    monkeypatch.setattr(image_service, "upload_image", upload_image)
+    monkeypatch.setattr(image_tasks, "_save_product_photo", save_product_photo)
+
+    image_tasks.process_rating_image(
+        "8a2c8f63-96b8-4f1b-a4db-75f34aef332d",
+        str(image_path),
+        "ecommerce/products",
+    )
+
+    assert upload_calls == [(image_path, "ecommerce/products")]
+    assert persisted_urls == [
+        (
+            UUID("8a2c8f63-96b8-4f1b-a4db-75f34aef332d"),
+            "https://res.cloudinary.com/example/image/upload/product.png",
         )
     ]
     assert not image_path.exists()

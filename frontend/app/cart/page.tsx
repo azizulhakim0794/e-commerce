@@ -111,14 +111,16 @@ export default function CartPage() {
         <div className="mt-10 grid gap-12 lg:grid-cols-[1fr_360px]">
           <div className="divide-y divide-slate-200 dark:divide-slate-800">
             {cartItems.map((item) => {
-              const hasValidCartImage = isValidImageSource(item.product.image);
+              const hasValidCartImage = isValidImageSource(
+                item.product.photo_url,
+              );
 
               return (
                 <div key={item.id} className="flex gap-4 py-6 first:pt-0">
                   <div className="relative h-28 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-100">
                     {hasValidCartImage ? (
                       <Image
-                        src={item.product.image ?? ""}
+                        src={item.product.photo_url ?? ""}
                         alt={item.product.name}
                         fill
                         sizes="96px"

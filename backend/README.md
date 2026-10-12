@@ -117,11 +117,12 @@ uv run alembic revision --autogenerate -m "add gender to user"
 
 2. docker compose exec ecommerce-backend uv run alembic upgrade head
 
-## Rating image uploads
+## Image uploads
 
-Rating photos are staged in the shared `image-temp` volume and processed by the
-`ecommerce-image-worker` RQ worker. The worker uploads images to Cloudinary and
-updates the rating's `photo_url` after the upload succeeds. Start it with the
-rest of the application using `docker compose up --build`; for local development,
-run `uv run --project backend python -m workers.rq_worker` alongside the API,
-with Redis available at the configured `REDIS_URL`.
+Product and rating photos are staged in the shared `image-temp` volume and
+processed by the `ecommerce-image-worker` RQ worker. The worker uploads images
+to Cloudinary and updates the associated record's photo URL after the upload
+succeeds. Start it with the rest of the application using
+`docker compose up --build`; for local development, run
+`uv run --project backend --directory backend python -m workers.rq_worker`
+alongside the API, with Redis available at the configured `REDIS_URL`.

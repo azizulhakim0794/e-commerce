@@ -1,5 +1,5 @@
 from pathlib import Path
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from fastapi import Depends, HTTPException, UploadFile, status
 from redis.exceptions import RedisError
@@ -9,8 +9,6 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
 
-from core.config import settings
-
 from core.security import CurrentUser
 from db.database import get_db
 from jobs.queue import enqueue_image as enqueue_rating_image_job
@@ -18,6 +16,7 @@ from models import Order, OrderItem, Rating, Product
 from schemas.rating import RatingCreate, RatingResponse, RatingUpdate
 from services import image_service
 from services.order import _build_order_response
+from services import photo_upload
 from db.database import AsyncSessionFactory
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
@@ -25,6 +24,7 @@ ALLOWED_PHOTO_TYPES = {
     "image/jpeg": ".jpg",
     "image/png": ".png",
     "image/webp": ".webp",
+    "image/avif": ".avif",
 }
 
 RATING_LOCATION = "ecommerce/ratings"
@@ -127,29 +127,7 @@ async def create_rating(
 # Validates the uploaded photo, checks its size, and saves it
 # to a temporary directory so a background worker can process it later.
 async def _stage_photo(photo: UploadFile) -> Path:
-    extension = ALLOWED_PHOTO_TYPES.get(photo.content_type or "")
-    if extension is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Unsupported image type",
-        )
-    image_data = await photo.read(settings.max_upload_size_bytes + 1)
-    if not image_data:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Image file is empty",
-        )
-    if len(image_data) > settings.max_upload_size_bytes:
-        raise HTTPException(
-            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-            detail="Image file is too large",
-        )
-
-    upload_dir = settings.image_upload_temp_dir
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    image_path = upload_dir / f"{uuid4().hex}{extension}"
-    image_path.write_bytes(image_data)
-    return image_path
+    return await photo_upload.stage_photo(photo, ALLOWED_PHOTO_TYPES)
 
 
 async def _save_rating_photo(

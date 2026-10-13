@@ -18,15 +18,15 @@ image_queue = Queue(
 
 # Adds an image-processing job to Redis/RQ.
 def enqueue_image(
-    rating_id: UUID,
-    image_path: Path,
+    items_id: UUID,
+    images_path: Path,
     folder: str = "ecommerce/ratings",
 ) -> str:
     try:
         job = image_queue.enqueue(
-            "jobs.image_tasks.process_rating_image",
-            str(rating_id),
-            str(image_path),
+            "jobs.image_tasks.process_image",
+            str(items_id),
+            str(images_path),
             str(folder),
             retry=Retry(
                 max=3,
@@ -40,7 +40,7 @@ def enqueue_image(
 
     except Exception:
         # A job that was not queued cannot be retried, so remove its staged file.
-        image_path.unlink(missing_ok=True)
+        images_path.unlink(missing_ok=True)
         raise
 
 

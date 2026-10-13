@@ -2,7 +2,7 @@ import json
 import logging
 from decimal import Decimal
 from pathlib import Path
-from uuid import UUID, uuid4
+from uuid import UUID
 from sqlalchemy import select
 from fastapi import HTTPException, UploadFile, status, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,10 +13,10 @@ from db.database import get_db
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
 from core.cache import create_cache_key, _invalidate_list_cache
-from core.config import settings
 from core.redis import redis_client
 from db.database import AsyncSessionFactory
 from jobs.queue import enqueue_image
+from services import photo_upload
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
 
@@ -27,6 +27,7 @@ ALLOWED_PHOTO_TYPES = {
     "image/jpeg": ".jpg",
     "image/png": ".png",
     "image/webp": ".webp",
+    # "image/avif": ".avif",
 }
 logger = logging.getLogger(__name__)
 
@@ -59,29 +60,7 @@ async def create_product(
 # Validates the uploaded photo, checks its size, and saves it
 # to a temporary directory so a background worker can process it later.
 async def _stage_photo(photo: UploadFile) -> Path:
-    extension = ALLOWED_PHOTO_TYPES.get(photo.content_type or "")
-    if extension is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Unsupported image type",
-        )
-    image_data = await photo.read(settings.max_upload_size_bytes + 1)
-    if not image_data:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Image file is empty",
-        )
-    if len(image_data) > settings.max_upload_size_bytes:
-        raise HTTPException(
-            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-            detail="Image file is too large",
-        )
-
-    upload_dir = settings.image_upload_temp_dir
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    image_path = upload_dir / f"{uuid4().hex}{extension}"
-    image_path.write_bytes(image_data)
-    return image_path
+    return await photo_upload.stage_photo(photo, ALLOWED_PHOTO_TYPES)
 
 
 async def _save_product_photo(

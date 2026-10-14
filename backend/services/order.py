@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 from uuid import UUID
@@ -6,6 +7,7 @@ from fastapi import Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from redis.exceptions import RedisError
 
 from core.security import CurrentUser
 from db.database import get_db
@@ -21,6 +23,20 @@ from schemas.order import (
 from schemas.auth import UserPrivate
 
 DBSession = Annotated[AsyncSession, Depends(get_db)]
+logger = logging.getLogger(__name__)
+
+
+def _enqueue_order_confirmation(order_id: UUID) -> None:
+    from jobs.queue import enqueue_order_confirmation
+
+    try:
+        enqueue_order_confirmation(order_id)
+    except RedisError:
+        logger.exception(
+            "Could not enqueue confirmation for committed order_id=%s; "
+            "automatic delivery is unavailable and manual recovery is required",
+            order_id,
+        )
 
 
 def _normalize_datetime(value: datetime | None) -> datetime | None:
@@ -193,6 +209,7 @@ async def create_order_from_cart(
 
     await db.commit()
     await db.refresh(order)
+    _enqueue_order_confirmation(order.id)
 
     result = await db.execute(
         select(Order)
@@ -251,6 +268,7 @@ async def create_order_buy_now(
     db.add(order_item)
     await db.commit()
     await db.refresh(order)
+    _enqueue_order_confirmation(order.id)
 
     result = await db.execute(
         select(Order)

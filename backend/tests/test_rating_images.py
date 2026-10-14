@@ -7,6 +7,7 @@ from redis.exceptions import RedisError
 from starlette.datastructures import Headers
 
 from core.config import settings
+from core.redis import redis_client
 from jobs import image_tasks, queue as queue_service
 from services import image_service, rating as rating_service
 
@@ -15,6 +16,10 @@ def test_image_queue_uses_a_synchronous_redis_connection():
     from redis import Redis
 
     assert isinstance(queue_service.image_queue.connection, Redis)
+    assert queue_service.redis_connection.connection_pool.connection_kwargs[
+        "protocol"
+    ] == 2
+    assert redis_client.connection_pool.connection_kwargs["protocol"] == 2
 
 
 def test_rq_worker_consumes_the_shared_image_queue(monkeypatch):

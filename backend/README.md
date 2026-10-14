@@ -126,3 +126,51 @@ succeeds. Start it with the rest of the application using
 `docker compose up --build`; for local development, run
 `uv run --project backend --directory backend python -m workers.rq_worker`
 alongside the API, with Redis available at the configured `REDIS_URL`.
+Both Redis clients use RESP2 so they can also connect to older Redis servers
+that do not support the RESP3 `HELLO` command.
+
+## Order confirmation emails
+
+The existing RQ worker also sends order confirmation emails after an order
+transaction commits. Configure these variables in `backend/.env`; Compose passes
+that file to both the API and worker. The worker sends order confirmations
+through Mailtrap SMTP:
+
+```dotenv
+MAIL_SERVER=sandbox.smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=<Mailtrap SMTP username>
+MAIL_PASSWORD=<Mailtrap SMTP password>
+MAIL_FROM=<verified sender email address>
+MAIL_USE_TLS=true
+FRONTEND_URL=http://localhost:3000
+SUPPORT_EMAIL=<optional customer support address>
+```
+
+Use the SMTP username and password shown in your Mailtrap inbox's SMTP
+settings, and verify the sender address for your Sending domain. The
+order-confirmation template is rendered as both plain text and HTML and sent
+over STARTTLS. SMTP failures are retried using the existing RQ retry intervals.
+A mail failure does not undo a committed order; if Redis is unavailable when
+enqueueing, the API logs that manual recovery is needed.
+
+For local development, run the API and worker against the same `REDIS_URL`.
+In VS Code, start the **Debug FastAPI + RQ worker** compound launch, or run
+`uv run --project backend --directory backend python -m workers.rq_worker` in
+a separate terminal. Starting only FastAPI queues confirmation emails but
+does not send them; the RQ worker must remain running to process those jobs.
+
+If the worker reports an SMTP authentication or sender error, verify the
+Mailtrap SMTP username, password, and sender address, then recreate the worker
+so it loads the updated environment:
+
+```powershell
+docker compose up -d --force-recreate ecommerce-image-worker
+```
+
+Jobs that exhausted their retries remain in RQ's failed registry. After fixing
+the SMTP settings, requeue an individual failed confirmation with:
+
+```powershell
+docker compose exec ecommerce-image-worker rq requeue --queue images <job-id>
+```

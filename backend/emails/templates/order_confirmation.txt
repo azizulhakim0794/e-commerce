@@ -1,0 +1,23 @@
+{{ store_name }}
+Order confirmation
+
+Thanks for your order, {{ customer_name }}.
+Your order has been recorded. See the current status and order details below.
+
+Order number: #{{ order_number }}
+Order date: {{ order_date }}
+Order status: {{ order_status }}
+Payment status: {{ payment_status }}
+
+Order summary:
+{% for item in items %}
+- {{ item.product_name }} — quantity {{ item.quantity }} at {{ item.unit_price }} each: {{ item.subtotal }}
+{% endfor %}
+Order total: {{ total_amount }}
+
+View your orders: {{ order_url }}
+
+Thank you for shopping with {{ store_name }}.
+{% if support_email %}
+Questions? Contact us at {{ support_email }}.
+{% endif %}

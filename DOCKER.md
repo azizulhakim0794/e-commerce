@@ -18,6 +18,16 @@ docker compose up -d
 docker compose up -d --build
 ```
 
+The backend runs with Uvicorn reload enabled and its source directory mounted,
+so edits under `backend/` are picked up automatically. Open
+`http://localhost:8000/docs` for the API or `http://localhost:8000/health` to
+check the backend and its database/Redis connections. If Compose is already
+running, apply the updated backend command with:
+
+```bash
+docker compose up -d ecommerce-backend
+```
+
 ### Check service status
 ```bash
 docker compose ps

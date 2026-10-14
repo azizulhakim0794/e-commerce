@@ -38,6 +38,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     image: ecommerce-backend:latest
     container_name: ecommerce-backend-container
     restart: unless-stopped
@@ -81,6 +82,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://postgres:console.log@ecommerce-postgres:5432/ecommerce
       REDIS_URL: redis://ecommerce-redis:6379/0
       IMAGE_UPLOAD_TEMP_DIR: /tmp/uploads
+      FRONTEND_URL: http://localhost:3000
     command: ["python", "-m", "workers.rq_worker"]
     volumes:
       - ./backend:/app

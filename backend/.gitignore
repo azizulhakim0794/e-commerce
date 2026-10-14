@@ -11,3 +11,6 @@ logs
 
 # Virtual environments
 .venv
+
+# Local environment and credentials
+.env

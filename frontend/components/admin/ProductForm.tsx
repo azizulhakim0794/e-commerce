@@ -102,7 +102,10 @@ export default function ProductForm({ product }: { product?: Product }) {
             ...data,
             id: existingId,
           })
-        : await handleRequest(product_service.create_product, data);
+        : await handleRequest(product_service.create_product, {
+            product_data: data,
+            photo: photo,
+          });
 
       if (!result.success || !result.data) {
         setImageUploadError("Could not save the product. Please try again.");
@@ -112,11 +115,6 @@ export default function ProductForm({ product }: { product?: Product }) {
       const savedProduct = result.data as Product;
       if (!product) {
         setSavedProductId(savedProduct.id);
-      }
-
-      if (photo) {
-        setIsUploadingImage(true);
-        await product_service.upload_product_image(savedProduct.id, photo);
       }
 
       setForm({

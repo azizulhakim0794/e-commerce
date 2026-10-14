@@ -7,23 +7,33 @@ import {
 import api, { UPLOAD } from "../api";
 
 export const product_service = {
-  create_product: async (
-    product_data: CreateProductType,
-  ): Promise<Product> => {
-    const { data } = await api.post<Product>("/products", product_data);
-    return data;
-  },
-  upload_product_image: async (
-    productId: string,
-    photo: File,
-  ): Promise<{ job_id: string; status: string }> => {
+  // create_product: async (product_data: {
+  //   product_data: CreateProductType;
+  //   photo: File | null;
+  // }): Promise<Product> => {
+  //   const formData = new FormData();
+  //   formData.append("product_data", JSON.stringify(product_data.product_data));
+  //   if (product_data.photo) {
+  //     formData.append("photo", product_data.photo);
+  //   }
+  //   return UPLOAD<Product>("/products", formData);
+  // },
+
+  create_product: async (data: {
+    product_data: CreateProductType;
+    photo: File | null;
+  }): Promise<Product> => {
     const formData = new FormData();
-    formData.append("photo", photo);
-    return UPLOAD<{ job_id: string; status: string }>(
-      `/products/${productId}/image`,
-      formData,
-    );
+
+    formData.append("product_data", JSON.stringify(data.product_data));
+
+    if (data.photo) {
+      formData.append("photo", data.photo);
+    }
+
+    return UPLOAD<Product>("/products", formData);
   },
+
   get_products: async (): Promise<Product[]> => {
     const { data } = await api.get<Product[]>("/products");
     return data;

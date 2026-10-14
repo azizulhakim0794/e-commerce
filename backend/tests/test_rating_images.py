@@ -82,7 +82,7 @@ def test_queue_enqueue_removes_file_when_redis_is_unavailable(tmp_path, monkeypa
 
     with pytest.raises(RedisError):
         queue_service.enqueue_rating_image(
-            rating_id=uuid4(),
+            items_id=uuid4(),
             image_path=image_path,
         )
 
@@ -109,7 +109,7 @@ def test_image_job_uploads_and_persists_photo_in_background(tmp_path, monkeypatc
     monkeypatch.setattr(image_service, "upload_image", upload_image)
     monkeypatch.setattr(image_tasks, "_save_rating_photo", save_rating_photo)
 
-    image_tasks.process_rating_image(
+    image_tasks.process_image(
         "8a2c8f63-96b8-4f1b-a4db-75f34aef332d",
         str(image_path),
     )
@@ -144,7 +144,7 @@ def test_image_job_uploads_and_persists_product_photo(tmp_path, monkeypatch):
     monkeypatch.setattr(image_service, "upload_image", upload_image)
     monkeypatch.setattr(image_tasks, "_save_product_photo", save_product_photo)
 
-    image_tasks.process_rating_image(
+    image_tasks.process_image(
         "8a2c8f63-96b8-4f1b-a4db-75f34aef332d",
         str(image_path),
         "ecommerce/products",

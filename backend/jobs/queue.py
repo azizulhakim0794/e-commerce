@@ -18,14 +18,14 @@ image_queue = Queue(
 
 # Adds an image-processing job to Redis/RQ.
 def enqueue_image(
-    rating_id: UUID,
+    items_id: UUID,
     image_path: Path,
     folder: str = "ecommerce/ratings",
 ) -> str:
     try:
         job = image_queue.enqueue(
-            "jobs.image_tasks.process_rating_image",
-            str(rating_id),
+            "jobs.image_tasks.process_image",
+            str(items_id),
             str(image_path),
             str(folder),
             retry=Retry(

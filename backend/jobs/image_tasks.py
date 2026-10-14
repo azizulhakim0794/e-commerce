@@ -14,7 +14,7 @@ PRODUCT_IMAGE_FOLDER = "ecommerce/products"
 
 # Uploads an image and persists its URL.
 # Keeps the temporary file when processing fails so RQ can retry.
-def process_rating_image(
+def process_image(
     process_id: str,
     image_path: str,
     folder: str = RATING_IMAGE_FOLDER,

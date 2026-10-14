@@ -139,8 +139,6 @@ through Mailtrap SMTP:
 ```dotenv
 MAIL_SERVER=sandbox.smtp.mailtrap.io
 MAIL_PORT=2525
-MAIL_USERNAME=<Mailtrap SMTP username>
-MAIL_PASSWORD=<Mailtrap SMTP password>
 MAIL_FROM=<verified sender email address>
 MAIL_USE_TLS=true
 FRONTEND_URL=http://localhost:3000

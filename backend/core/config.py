@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     )
     mail_port: int = 2525
     mail_username: str = ""
-    mail_password: SecretStr = SecretStr("")
+    mail_password: SecretStr
     mail_from: str = ""
     mail_use_tls: bool = True
     store_name: str = "Northstar Supply Co."

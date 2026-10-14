@@ -82,7 +82,7 @@ def test_queue_enqueue_removes_file_when_redis_is_unavailable(tmp_path, monkeypa
 
     with pytest.raises(RedisError):
         queue_service.enqueue_rating_image(
-            rating_id=uuid4(),
+            items_id=uuid4(),
             image_path=image_path,
         )
 

@@ -13,7 +13,7 @@ export interface CreateProductType {
   description: string;
   price: number;
   original_price?: number | null;
-  badge?: string;
+  badge: string;
   category: string;
   specs: string[];
   stock: number;

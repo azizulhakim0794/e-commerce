@@ -51,6 +51,7 @@ services:
       WATCHFILES_FORCE_POLLING: "true"
     ports:
       - "8000:8000"
+    # command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     volumes:
       - ./backend:/app
       - /app/.venv
@@ -111,6 +112,7 @@ services:
       CHOKIDAR_USEPOLLING: "true"
     ports:
       - "3000:3000"
+    # command: npm run dev -- --hostname 0.0.0.0
     volumes:
       - ./frontend:/app
       - /app/node_modules

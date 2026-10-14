@@ -2,7 +2,8 @@ from collections.abc import Mapping
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import HTTPException, UploadFile, status
+from fastapi import HTTPException, status
+from starlette.datastructures import UploadFile
 
 from core.config import settings
 

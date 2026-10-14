@@ -4,8 +4,10 @@ from decimal import Decimal
 from pathlib import Path
 from uuid import UUID
 from sqlalchemy import select
-from fastapi import HTTPException, UploadFile, status, Depends
+from sqlalchemy.exc import SQLAlchemyError
+from fastapi import HTTPException, status, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.datastructures import UploadFile
 from models.product import Product
 from schemas.product import ProductCreate, ProductResponse, ProductUpdate
 from typing import Annotated
@@ -36,7 +38,9 @@ async def create_product(
     db: DBSession,
     redis: Redis,
     product_data: ProductCreate,
+    photo: UploadFile | None = None,
 ) -> Product:
+    image_path = await _stage_photo(photo) if photo is not None else None
     new_product = Product(
         name=product_data.name,
         description=product_data.description,
@@ -50,9 +54,30 @@ async def create_product(
     )
 
     db.add(new_product)
-    await db.commit()
-    await db.refresh(new_product)
-    await _invalidate_list_cache(redis, PRODUCT_LIST_CACHE_VERSION_KEY)
+    try:
+        await db.commit()
+        await db.refresh(new_product)
+    except SQLAlchemyError:
+        await db.rollback()
+        if image_path is not None:
+            image_path.unlink(missing_ok=True)
+        raise
+
+    try:
+        await _invalidate_list_cache(redis, PRODUCT_LIST_CACHE_VERSION_KEY)
+    except RedisError:
+        if image_path is not None:
+            image_path.unlink(missing_ok=True)
+        raise
+
+    if image_path is not None:
+        try:
+            enqueue_image(new_product.id, image_path, PRODUCT_IMAGE_FOLDER)
+        except RedisError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Image processing queue unavailable",
+            ) from exc
 
     return new_product
 
@@ -86,30 +111,6 @@ async def _save_product_photo(
             )
 
         return True, previous_photo_url
-
-
-async def upload_product_image(
-    db: DBSession,
-    product_id: UUID,
-    photo: UploadFile,
-) -> dict[str, str]:
-    result = await db.execute(select(Product).where(Product.id == product_id))
-    if result.scalar_one_or_none() is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Product not found",
-        )
-
-    image_path = await _stage_photo(photo)
-    try:
-        job_id = enqueue_image(product_id, image_path, PRODUCT_IMAGE_FOLDER)
-    except RedisError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Image processing queue unavailable",
-        ) from exc
-
-    return {"job_id": job_id, "status": "queued"}
 
 
 async def get_products(

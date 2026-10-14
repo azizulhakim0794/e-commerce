@@ -3,7 +3,8 @@ import type { NextConfig } from "next";
 const BACKEND_URL =
   process.env.INTERNAL_BACKEND_URL ||
   process.env.BACKEND_URL ||
-  "http://localhost:8000";
+  "http://ecommerce-backend:8000";
+// "http://localhost:8000";
 
 const nextConfig: NextConfig = {
   reactStrictMode: false,

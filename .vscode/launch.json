@@ -1,21 +1,42 @@
+// {
+//     // Use IntelliSense to learn about possible attributes.
+//     // Hover to view descriptions of existing attributes.
+//     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+//     "version": "0.2.0",
+//     "configurations": [
+//         {
+//             "name": "Python Debugger: FastAPI",
+//             "type": "debugpy",
+//             "request": "launch",
+//             "module": "uvicorn",
+//             "cwd": "${workspaceFolder}/backend",
+//             "args": [
+//                 "main:app",
+//                 "--reload"
+//             ],
+//             // "subProcess": true,
+//             "jinja": false
+//         }
+//     ]
+// }
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-   {
-            "name": "Python Debugger: FastAPI",
+        {
+            "name": "Debug FastAPI",
             "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",
             "cwd": "${workspaceFolder}/backend",
             "args": [
                 "main:app",
-                "--reload"
+                "--host",
+                "127.0.0.1",
+                "--port",
+                "8000"
             ],
-            "subProcess": true,
-            "jinja": true
-        }
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
     ]
 }

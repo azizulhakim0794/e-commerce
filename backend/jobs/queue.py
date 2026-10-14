@@ -9,7 +9,7 @@ from rq import Queue, Retry
 from core.config import settings
 
 # Queue dedicated to background image-processing jobs.
-redis_connection = Redis.from_url(settings.REDIS_URL)
+redis_connection = Redis.from_url(settings.REDIS_URL, protocol=2)
 image_queue = Queue(
     name="images",
     connection=redis_connection,
@@ -46,3 +46,24 @@ def enqueue_image(
 
 # Keep the original import name available to existing rating-image callers.
 enqueue_rating_image = enqueue_image
+
+
+def enqueue_order_confirmation(order_id: UUID) -> str:
+    from rq.exceptions import DuplicateJobError
+
+    job_id = f"order-confirmation-{order_id}"
+    try:
+        job = image_queue.enqueue(
+            "jobs.email_tasks.send_order_confirmation_task",
+            str(order_id),
+            job_id=job_id,
+            unique=True,
+            retry=Retry(max=3, interval=[30, 120]),
+            job_timeout=120,
+            result_ttl=86400,
+            failure_ttl=604800,
+        )
+    except DuplicateJobError:
+        return job_id
+
+    return job.id

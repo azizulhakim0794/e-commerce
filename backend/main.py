@@ -1,6 +1,5 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
-
 from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -33,6 +32,9 @@ async def lifespan(_: FastAPI):
     finally:
         await redis_client.aclose()
         # image_queue.close()
+
+
+# Test the connection by listing all running containers
 
 
 app = FastAPI(lifespan=lifespan)

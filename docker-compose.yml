@@ -58,6 +58,7 @@ services:
       - /app/.venv
       - ecommerce-media-data:/app/media
       - image-temp:/tmp/uploads
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       ecommerce-postgres:
         condition: service_healthy

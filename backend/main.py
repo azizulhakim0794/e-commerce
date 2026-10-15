@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
-
+import docker
 from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -35,6 +35,11 @@ async def lifespan(_: FastAPI):
         # image_queue.close()
 
 
+# Automatically discover and connect to the local Docker daemon
+client = docker.from_env()
+# Test the connection by listing all running containers
+
+
 app = FastAPI(lifespan=lifespan)
 app.mount(
     "/media",
@@ -60,6 +65,39 @@ app.add_middleware(
 )
 
 API_PREFIX = "/api/v1"
+
+
+@app.get("/api/v1/docker/stats")
+def get_docker_stats():
+    try:
+
+        containers = client.containers.list(all=True)
+        images = client.images.list()
+
+        running = [c for c in containers if c.status == "running"]
+
+        return {
+            "total_images": len(images),
+            "total_containers": len(containers),
+            "running_containers": len(running),
+            "stopped_containers": len(containers) - len(running),
+            "containers": [
+                {
+                    "name": c.name,
+                    "id": c.short_id,
+                    "status": c.status,
+                    "image": c.image.tags,
+                }
+                for c in containers
+            ],
+        }
+
+    except docker.errors.DockerException as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Cannot connect to Docker Engine. Check Docker socket access.",
+        ) from exc
+
 
 app.include_router(
     auth_router,

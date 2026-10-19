@@ -1,5 +1,10 @@
 #### for authenticated i need to install theses packages
 
+Frontend: Next.js → Vercel
+Backend: FastAPI → Render
+Database: PostgreSQL → Neon
+Redis: Upstash, if its free tier meets your RQ requirements.
+
 1. uv add alembic
 2. uv add pydantic-settings
 3. uv add "pwdlib[argon2]"

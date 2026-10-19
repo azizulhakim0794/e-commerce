@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     store_name: str = "Northstar Supply Co."
     support_email: str | None = None
 
-    frontend_url: str = "http://localhost:8000"
+    frontend_url: str = ""
 
 
 settings = Settings()
